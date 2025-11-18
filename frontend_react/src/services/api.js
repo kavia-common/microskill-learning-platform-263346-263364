@@ -1,7 +1,7 @@
-/**
- * API client for LMS backend.
- * Uses REACT_APP_API_BASE or REACT_APP_BACKEND_URL for base URL.
- */
+ /**
+  * API client for LMS backend.
+  * Uses REACT_APP_API_BASE or REACT_APP_BACKEND_URL for base URL.
+  */
 const base =
   process.env.REACT_APP_API_BASE ||
   process.env.REACT_APP_BACKEND_URL ||
@@ -66,4 +66,48 @@ export async function updateProgress(payload) {
   });
   if (!res.ok) throw new Error('Failed to update progress');
   return res.json();
+}
+
+// PUBLIC_INTERFACE
+export async function generateLessonAI({ topic, audience, tone, dryRun = false }) {
+  /**
+   * Calls backend /api/generate-lesson to create lesson + quiz.
+   * Returns: { lesson, quiz }
+   */
+  const res = await fetch(buildUrl('/api/generate-lesson'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic, audience, tone, dryRun })
+  });
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err?.error?.message || 'Failed to generate lesson');
+  }
+  return res.json();
+}
+
+// PUBLIC_INTERFACE
+export async function generateMediaAI({ title, summary, takeaways }) {
+  /**
+   * Calls backend /api/generate-media to render local MP4 + VTT.
+   * Returns: { slug, videoUrl, captionsUrl }
+   */
+  const res = await fetch(buildUrl('/api/generate-media'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, summary, takeaways })
+  });
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err?.error?.message || 'Failed to generate media');
+  }
+  return res.json();
+}
+
+async function safeJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
 }

@@ -6,6 +6,13 @@ React app with vertical video feed, quiz modal, and progress.
 - Start: npm install && npm start
 - Routes: Single page; top right Progress toggles the view.
 
+## AI Generation (Optional)
+
+If the backend is running (see backend/README.md), you can:
+- Create -> Create (AI): open the Creator Generate screen to input Topic/Audience/Tone and call /api/generate-lesson.
+- In lesson detail: use "Generate Media (AI)" to call /api/generate-media and render local MP4 + WebVTT under /assets/.
+The Home Feed and Lesson Detail will automatically map generated assets by slug (derived from the title). The UI gracefully falls back to captions-only if video is still processing.
+
 ## Dummy Content Toggle
 
 To demo without a backend or when the API returns empty, enable the local dummy lessons:

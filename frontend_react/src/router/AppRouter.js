@@ -10,6 +10,7 @@ import SignupPage from '../views/auth/SignupPage';
 import ForgotPasswordPage from '../views/auth/ForgotPasswordPage';
 import ProfilePage from '../views/ProfilePage';
 import CreatorUploadPage from '../views/CreatorUploadPage';
+import CreatorGeneratePage from '../views/CreatorGeneratePage';
 
 /**
  * PUBLIC_INTERFACE
@@ -29,6 +30,7 @@ export default function AppRouter() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/create" element={<CreatorUploadPage />} />
+          <Route path="/create/generate" element={<CreatorGeneratePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

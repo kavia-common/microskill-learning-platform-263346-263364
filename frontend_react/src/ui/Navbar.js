@@ -36,6 +36,7 @@ export default function Navbar() {
         <Link to="/" className={`navlink ${isActive('/') ? 'active' : ''}`}>Home</Link>
         <Link to="/progress" className={`navlink ${isActive('/progress') ? 'active' : ''}`}>Progress</Link>
         <Link to="/create" className={`navlink ${isActive('/create') ? 'active' : ''}`}>Create</Link>
+        <Link to="/create/generate" className={`navlink ${isActive('/create/generate') ? 'active' : ''}`}>Create (AI)</Link>
         <Link to="/profile" className={`navlink ${isActive('/profile') ? 'active' : ''}`}>Profile</Link>
         <Link to="/login" className={`btn primary`} aria-label="Login">Login</Link>
         <div style={{ width: 8 }} />
