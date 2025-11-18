@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { checkHealth } from '../services/health';
 import { runtime } from '../utils/settings';
 import { runMediaEndpointDiagnostics, probeVideoPlayback } from '../services/mediaDiagnostics';
+import { formatMediaDiagnosticsReport } from '../services/diagnosticsReportFormatter';
 
 export default function DiagnosticsPanel() {
   const [status, setStatus] = useState(null);
@@ -120,6 +121,14 @@ export default function DiagnosticsPanel() {
                     {f.error && <div>Error: <code>{f.error}</code></div>}
                   </div>
                 ))}
+              </div>
+            )}
+            {status && mediaDiag && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ color: '#fff', marginBottom: 4 }}>Concise JSON report:</div>
+                <pre style={{ whiteSpace: 'pre-wrap', fontSize: 11, background: '#111827', padding: 8, borderRadius: 6, overflowX: 'auto' }}>
+{JSON.stringify(formatMediaDiagnosticsReport(status, mediaDiag, playbackProbe), null, 2)}
+                </pre>
               </div>
             )}
           </div>
