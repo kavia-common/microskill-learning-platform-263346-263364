@@ -1,0 +1,10 @@
+[
+  { "start": 0.0, "end": 4.0, "text": "Focus sprints boost deep work with short, intense intervals." },
+  { "start": 4.2, "end": 8.0, "text": "Pick one task and remove distractions before you start." },
+  { "start": 8.2, "end": 12.0, "text": "Set a timer for 20–25 minutes of single‑task focus." },
+  { "start": 12.2, "end": 16.0, "text": "Silence notifications and close extra tabs." },
+  { "start": 16.2, "end": 20.0, "text": "Work with intent; capture stray thoughts on a notepad." },
+  { "start": 20.2, "end": 24.0, "text": "When the timer ends, take a 3–5 minute active break." },
+  { "start": 24.2, "end": 28.0, "text": "Evaluate progress and adjust your next sprint." },
+  { "start": 28.2, "end": 32.0, "text": "Stack 2–3 sprints to build momentum without burnout." }
+]

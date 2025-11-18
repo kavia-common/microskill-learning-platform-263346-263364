@@ -1,0 +1,10 @@
+[
+  { "start": 0.0, "end": 4.0, "text": "G‑M‑A is a quick loop: Goals, Methods, Actions." },
+  { "start": 4.2, "end": 8.0, "text": "Goals: define the outcome in one clear sentence." },
+  { "start": 8.2, "end": 12.0, "text": "Methods: list ways to reach the goal—constraints and resources." },
+  { "start": 12.2, "end": 16.0, "text": "Pick the simplest method that fits your context." },
+  { "start": 16.2, "end": 20.0, "text": "Actions: translate method into the next 1–3 concrete steps." },
+  { "start": 20.2, "end": 24.0, "text": "Time‑box each step and set a visible checkpoint." },
+  { "start": 24.2, "end": 28.0, "text": "Run the loop again after your checkpoint to recalibrate." },
+  { "start": 28.2, "end": 32.0, "text": "Keep the loop small to maintain momentum and clarity." }
+]

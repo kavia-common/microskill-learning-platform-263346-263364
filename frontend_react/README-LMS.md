@@ -85,6 +85,25 @@ Optional captions (WebVTT):
 - Place `public/assets/captions/{slug}.vtt` (e.g., `/assets/captions/quick-inbox-zero.vtt`).
 - If no VTT is found, the app falls back to audio captions JSON or text transcript (see Audio section), otherwise derives simple lines from the lesson summary/description.
 
+Additional caption assets included:
+- We added concise, mobile‑readable captions for the remaining lessons. Files live under:
+  - WebVTT: `public/assets/captions/{slug}.vtt`
+  - JSON cues: `public/assets/captions/{slug}.json` with schema: `[{ start, end, text }]`
+
+Covered slugs:
+- `focus-sprints`
+- `g-m-a-formula`
+- `five-minute-map`
+- `4-4-6-reset`
+- `memory-ladder`
+- `micro-leadership-tips`
+
+Player auto-detection:
+- The video resolver first looks for `/assets/captions/{slug}.vtt`.
+- If missing, audio mapping will try `/assets/audio/captions/{slug}.captions.json` or `/assets/audio/text/{slug}.txt`.
+- If neither is found, the UI derives short cues from the lesson summary/description.
+- The JSON cue sheets placed next to the VTTs are a convenience mirror and may be used by custom players; the built-in player prioritizes VTT when present.
+
 A sample thumbnail asset has been included for reference:
 - `/assets/video/thumb/sample-attachment.png`
 You can map a title to this by setting `REACT_APP_VIDEO_TITLE_MAP` to point your lesson’s title to `sample-attachment` and placing a corresponding mp4 if desired.

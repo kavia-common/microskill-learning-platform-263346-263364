@@ -1,0 +1,10 @@
+[
+  { "start": 0.0, "end": 4.0, "text": "Build a memory ladder to learn faster." },
+  { "start": 4.2, "end": 8.0, "text": "Anchor new ideas to something you already know." },
+  { "start": 8.2, "end": 12.0, "text": "Chunk information into 3–5 item groups." },
+  { "start": 12.2, "end": 16.0, "text": "Create a quick story or visual hook for each chunk." },
+  { "start": 16.2, "end": 20.0, "text": "Use spaced repetition: 1 day, 3 days, 1 week." },
+  { "start": 20.2, "end": 24.0, "text": "Active recall beats re‑reading—test yourself briefly." },
+  { "start": 24.2, "end": 28.0, "text": "Refine the ladder by collapsing weak links." },
+  { "start": 28.2, "end": 32.0, "text": "Keep cues short, vivid, and personally meaningful." }
+]
