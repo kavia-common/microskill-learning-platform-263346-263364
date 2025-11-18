@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { getProgress } from '../services/api';
 import ProgressTracker from '../components/ProgressTracker';
 import { Skeleton } from '../ui/Skeleton';
+import { emptyStates, sectionHeadings } from '../data/dummyLessons';
 
 /**
  * PUBLIC_INTERFACE
@@ -43,16 +44,19 @@ export default function ProgressPageView() {
     );
   }
 
+  const completed = (data?.items || []).filter(i => i.completed);
+
   return (
     <div style={{ padding: 16, display: 'grid', gap: 12 }}>
+      <h1 style={{ margin: 0 }}>{sectionHeadings.continue}</h1>
       <ProgressTracker stats={data?.stats || {}} />
-      <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
+      <section aria-label="Completed lessons" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
         <h3 style={{ marginTop: 0 }}>Completed lessons</h3>
         <ul>
-          {data?.items?.filter(i => i.completed)?.map((it) => (
+          {completed.map((it) => (
             <li key={it.lessonId}>{it.lessonId} — Score {it.score}</li>
           ))}
-          {(!data?.items || data.items.filter(i => i.completed).length === 0) && <li>Nothing completed yet.</li>}
+          {completed.length === 0 && <li>{emptyStates.continue}</li>}
         </ul>
       </section>
     </div>

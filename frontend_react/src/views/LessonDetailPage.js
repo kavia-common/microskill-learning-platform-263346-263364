@@ -6,6 +6,7 @@ import SummaryBox from '../components/SummaryBox';
 import TagList from '../components/TagList';
 import { Skeleton } from '../ui/Skeleton';
 import { addGlobalToast } from '../ui/ToastHost';
+import { ctas } from '../data/dummyLessons';
 
 /**
  * PUBLIC_INTERFACE
@@ -38,6 +39,21 @@ export default function LessonDetailPage() {
     return () => { mounted = false; };
   }, [id]);
 
+  const derivedSummary = useMemo(() => {
+    if (!lesson) return '';
+    const base = lesson.summary || lesson.description || '';
+    return base.length > 0 ? base : 'A quick, practical micro-lesson to boost your skills.';
+  }, [lesson]);
+
+  const derivedTakeaways = useMemo(() => {
+    if (!lesson) return [];
+    if (lesson.takeaways && lesson.takeaways.length) return lesson.takeaways;
+    const src = (lesson.description || lesson.summary || '').split(/[.?!]/).map(s => s.trim()).filter(Boolean);
+    const bullets = src.slice(0, 3);
+    if (bullets.length === 0) return ['Understand the concept', 'Apply it quickly', 'Avoid common pitfalls'];
+    return bullets;
+  }, [lesson]);
+
   const markWatched = async () => {
     setSaving(true);
     try {
@@ -64,21 +80,15 @@ export default function LessonDetailPage() {
 
   if (!lesson) return <div style={{ padding: 16 }}>Lesson not found</div>;
 
-  const takeaways = lesson.takeaways || [
-    'Understand the concept quickly',
-    'Apply it with a quick tip',
-    'Avoid a common pitfall'
-  ];
-
   return (
     <div style={{ padding: 16, display: 'grid', gap: 12 }}>
       <TagList tags={lesson.tags || []} />
       <h1 style={{ margin: 0 }}>{lesson.title}</h1>
       <LessonPlayer src={lesson.videoUrl} poster={lesson.thumbnail} />
-      <SummaryBox summary={lesson.summary} takeaways={takeaways} />
+      <SummaryBox summary={derivedSummary} takeaways={derivedTakeaways} />
       <div style={{ display: 'flex', gap: 8 }}>
         <button className="btn" onClick={markWatched} disabled={saving}>Mark Watched</button>
-        <Link to={`/quiz/${lesson.id}`} className="btn primary">Begin Quiz</Link>
+        <Link to={`/quiz/${lesson.id}`} className="btn primary">{ctas.beginQuiz}</Link>
       </div>
       <div>
         <Link to="/" className="btn">Back to Feed</Link>

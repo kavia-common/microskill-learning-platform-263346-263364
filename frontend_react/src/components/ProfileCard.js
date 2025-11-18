@@ -1,5 +1,6 @@
 import React from 'react';
 import TagList from './TagList';
+import { emptyStates, sectionHeadings } from '../data/dummyLessons';
 
 /**
  * PUBLIC_INTERFACE
@@ -14,8 +15,8 @@ export default function ProfileCard({ user, saved = [], onLogout }) {
         <button className="btn" onClick={onLogout} aria-label="Logout">Logout</button>
       </div>
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
-        <h3 style={{ marginTop: 0 }}>Saved Lessons</h3>
-        {saved.length === 0 && <div style={{ color: 'var(--muted)' }}>No saved lessons yet.</div>}
+        <h3 style={{ marginTop: 0 }}>{sectionHeadings.saved}</h3>
+        {saved.length === 0 && <div style={{ color: 'var(--muted)' }}>{emptyStates.saved}</div>}
         <div style={{ display: 'grid', gap: 10 }}>
           {saved.map((l) => (
             <div key={l.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: 10 }}>

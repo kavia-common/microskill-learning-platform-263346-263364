@@ -1,7 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 import '../lms.css';
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * LessonCard shows a single autoplaying video lesson with overlay.
+ */
 export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
   /**
    * Renders a video lesson card. Auto plays when active and pauses otherwise.
@@ -34,6 +37,8 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
     return () => v.removeEventListener('timeupdate', handler);
   }, [lesson?.id]);
 
+  const quizCta = lesson?.cta === 'Start Lesson' ? 'Start Lesson' : 'Take Quiz';
+
   return (
     <div className="lesson-card" aria-label={`Lesson ${lesson.title}`}>
       <video ref={videoRef} src={lesson.videoUrl} muted playsInline preload="metadata" />
@@ -41,7 +46,7 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
         <div className="title">{lesson.title}</div>
         <div className="summary">{lesson.summary}</div>
         <div className="buttons">
-          <button className="btn primary" onClick={() => onQuiz?.(lesson)}>Take Quiz</button>
+          <button className="btn primary" onClick={() => onQuiz?.(lesson)} aria-label={quizCta}>{quizCta}</button>
         </div>
       </div>
     </div>
