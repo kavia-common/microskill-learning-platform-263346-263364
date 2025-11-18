@@ -1,0 +1,37 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from '../ui/Layout';
+import HomeFeedPage from '../views/HomeFeedPage';
+import LessonDetailPage from '../views/LessonDetailPage';
+import QuizPage from '../views/QuizPage';
+import ProgressPageView from '../views/ProgressPageView';
+import LoginPage from '../views/auth/LoginPage';
+import SignupPage from '../views/auth/SignupPage';
+import ForgotPasswordPage from '../views/auth/ForgotPasswordPage';
+import ProfilePage from '../views/ProfilePage';
+import CreatorUploadPage from '../views/CreatorUploadPage';
+
+/**
+ * PUBLIC_INTERFACE
+ * AppRouter provides all app routes using react-router.
+ */
+export default function AppRouter() {
+  return (
+    <BrowserRouter>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomeFeedPage />} />
+          <Route path="/lesson/:id" element={<LessonDetailPage />} />
+          <Route path="/quiz/:lessonId" element={<QuizPage />} />
+          <Route path="/progress" element={<ProgressPageView />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/create" element={<CreatorUploadPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
+  );
+}
