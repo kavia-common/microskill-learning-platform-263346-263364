@@ -1,0 +1,41 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson two.</amazon:effect>
+    <break time="300ms"/>
+    The Two‑Minute Rule.
+    <break time="400ms"/>
+
+    If a task takes less than <emphasis level="moderate">two minutes</emphasis>,
+    <break time="150ms"/>
+    do it now.
+    <break time="400ms"/>
+    Otherwise, schedule it on your calendar or next‑actions list.
+    <break time="500ms"/>
+
+    Why it works:
+    <break time="200ms"/>
+    it preserves momentum,
+    <break time="150ms"/>
+    prevents tiny tasks from piling up,
+    <break time="150ms"/>
+    and keeps your system trustworthy.
+    <break time="500ms"/>
+
+    Micro‑challenge:
+    <break time="150ms"/>
+    For the next hour,
+    <break time="150ms"/>
+    apply the Two‑Minute Rule to every new task.
+    <break time="350ms"/>
+    Capture longer tasks with a clear next action and a time slot.
+    <break time="500ms"/>
+
+    Result:
+    <break time="150ms"/>
+    lower friction,
+    <break time="150ms"/>
+    a cleaner mind,
+    <break time="150ms"/>
+    and reliable follow‑through.
+  </prosody>
+</speak>

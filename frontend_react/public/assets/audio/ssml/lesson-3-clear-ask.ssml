@@ -1,0 +1,43 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson three.</amazon:effect>
+    <break time="300ms"/>
+    Make a Clear Ask with the <emphasis level="moderate">C T A</emphasis> formula.
+    <break time="500ms"/>
+
+    <emphasis level="moderate">Context:</emphasis>
+    one sentence on why this matters.
+    <break time="350ms"/>
+    <emphasis level="moderate">Task:</emphasis>
+    what needs doing.
+    <break time="350ms"/>
+    <emphasis level="moderate">Ask:</emphasis>
+    a specific owner and deadline.
+    <break time="600ms"/>
+
+    Example:
+    <break time="200ms"/>
+    Context:
+    Our release slipped due to unclear handoffs.
+    <break time="250ms"/>
+    Task:
+    draft the handoff checklist.
+    <break time="250ms"/>
+    Ask:
+    <emphasis level="moderate">Taylor</emphasis>, first draft by <emphasis level="moderate">Wednesday 4 p.m.</emphasis>
+    <break time="600ms"/>
+
+    Micro‑challenge:
+    <break time="150ms"/>
+    Rewrite your next request using <emphasis level="moderate">Context, Task, Ask</emphasis>.
+    <break time="400ms"/>
+
+    Result:
+    <break time="150ms"/>
+    fewer back‑and‑forths,
+    <break time="150ms"/>
+    clearer ownership,
+    <break time="150ms"/>
+    faster outcomes.
+  </prosody>
+</speak>

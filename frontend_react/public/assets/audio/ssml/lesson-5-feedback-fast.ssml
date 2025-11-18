@@ -1,0 +1,43 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson five.</amazon:effect>
+    <break time="300ms"/>
+    Feedback in 30 seconds with <emphasis level="moderate">S B I</emphasis>:
+    <break time="300ms"/>
+    Situation, Behavior, Impact.
+    <break time="500ms"/>
+
+    Situation:
+    yesterday's client call.
+    <break time="250ms"/>
+    Behavior:
+    you interrupted twice.
+    <break time="250ms"/>
+    Impact:
+    the client paused and the conversation slowed.
+    <break time="500ms"/>
+
+    Make it timely, specific, and action‑focused.
+    <break time="350ms"/>
+    Offer a forward step:
+    <break time="200ms"/>
+    for the next call,
+    wait for a full second before jumping in.
+    <break time="500ms"/>
+
+    Micro‑challenge:
+    <break time="150ms"/>
+    give one S B I feedback today,
+    <break time="150ms"/>
+    and ask for one in return.
+    <break time="400ms"/>
+
+    Result:
+    <break time="150ms"/>
+    clearer signals,
+    <break time="150ms"/>
+    faster improvement,
+    <break time="150ms"/>
+    better trust.
+  </prosody>
+</speak>

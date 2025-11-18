@@ -1,0 +1,46 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson one.</amazon:effect>
+    <break time="300ms"/>
+    Inbox Zero in minutes.
+    <break time="400ms"/>
+
+    Triage emails with three labels:
+    <break time="200ms"/>
+    <emphasis level="moderate">Act.</emphasis>
+    <break time="150ms"/>
+    <emphasis level="moderate">Defer.</emphasis>
+    <break time="150ms"/>
+    <emphasis level="moderate">Archive.</emphasis>
+    <break time="500ms"/>
+
+    If it takes less than two minutes, label <emphasis level="moderate">Act</emphasis> and do it in your next batch window.
+    <break time="350ms"/>
+    If it needs more time, label <emphasis level="moderate">Defer</emphasis>, then schedule it.
+    <break time="350ms"/>
+    If no action is required, label <emphasis level="moderate">Archive</emphasis> and move on.
+    <break time="500ms"/>
+
+    Batch responses twice daily to reduce context switching.
+    <break time="300ms"/>
+    Close the inbox between batches to protect focus.
+    <break time="500ms"/>
+
+    Micro‑challenge:
+    <break time="150ms"/>
+    Set two 15‑minute windows today:
+    <break time="150ms"/>
+    morning and afternoon.
+    <break time="300ms"/>
+    Triage using Act, Defer, Archive.
+    <break time="400ms"/>
+
+    Result:
+    <break time="150ms"/>
+    a calmer inbox,
+    <break time="150ms"/>
+    faster decisions,
+    <break time="150ms"/>
+    and more deep work.
+  </prosody>
+</speak>

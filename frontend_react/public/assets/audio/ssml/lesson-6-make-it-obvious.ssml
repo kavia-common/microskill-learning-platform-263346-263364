@@ -1,0 +1,45 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson six.</amazon:effect>
+    <break time="300ms"/>
+    Make it Obvious with habit stacking.
+    <break time="400ms"/>
+
+    Formula:
+    <break time="150ms"/>
+    After I <emphasis level="moderate">[current habit]</emphasis>,
+    <break time="150ms"/>
+    I will <emphasis level="moderate">[new micro action]</emphasis>.
+    <break time="500ms"/>
+
+    Examples:
+    <break time="200ms"/>
+    After I make coffee,
+    I will review my top three priorities.
+    <break time="400ms"/>
+    After I end a meeting,
+    I will schedule the next step before closing the tab.
+    <break time="500ms"/>
+
+    Reduce friction:
+    place cues in sight,
+    keep materials ready,
+    make the start easy.
+    <break time="500ms"/>
+
+    Micro‑challenge:
+    <break time="150ms"/>
+    write one stack you can perform today,
+    <break time="150ms"/>
+    and do it once.
+    <break time="400ms"/>
+
+    Result:
+    <break time="150ms"/>
+    consistent action,
+    <break time="150ms"/>
+    visible progress,
+    <break time="150ms"/>
+    better habits.
+  </prosody>
+</speak>

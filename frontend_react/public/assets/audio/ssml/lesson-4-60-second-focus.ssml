@@ -1,0 +1,46 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson four.</amazon:effect>
+    <break time="300ms"/>
+    The 60‑Second Focus Reset.
+    <break time="400ms"/>
+
+    We will use a short breathing pattern and a micro‑stretch to reset attention.
+    <break time="400ms"/>
+
+    Step one:
+    <break time="150ms"/>
+    inhale for <emphasis level="moderate">four</emphasis>.
+    <break time="250ms"/>
+    hold for <emphasis level="moderate">four</emphasis>.
+    <break time="250ms"/>
+    exhale for <emphasis level="moderate">four</emphasis>.
+    <break time="500ms"/>
+    Repeat three cycles.
+    <break time="600ms"/>
+
+    Step two:
+    <break time="150ms"/>
+    roll shoulders back and down,
+    <break time="150ms"/>
+    stretch your neck gently side to side,
+    <break time="150ms"/>
+    unclench your jaw.
+    <break time="600ms"/>
+
+    Step three:
+    <break time="150ms"/>
+    pick the next single task.
+    <break time="300ms"/>
+    close extra tabs and notifications.
+    <break time="400ms"/>
+
+    Result:
+    <break time="150ms"/>
+    lower cognitive load,
+    <break time="150ms"/>
+    calmer breathing,
+    <break time="150ms"/>
+    sharper focus.
+  </prosody>
+</speak>

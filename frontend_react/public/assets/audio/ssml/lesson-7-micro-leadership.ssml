@@ -1,0 +1,40 @@
+<speak>
+  <prosody rate="+5%" pitch="+2%">
+    <amazon:effect phonation="soft">Lesson seven.</amazon:effect>
+    <break time="300ms"/>
+    Micro‑leadership with async standups.
+    <break time="400ms"/>
+
+    Keep updates lightweight and actionable:
+    <break time="200ms"/>
+    <emphasis level="moderate">Yesterday:</emphasis>
+    one concrete outcome.
+    <break time="250ms"/>
+    <emphasis level="moderate">Today:</emphasis>
+    the next clear step.
+    <break time="250ms"/>
+    <emphasis level="moderate">Blockers:</emphasis>
+    what you need and from whom.
+    <break time="600ms"/>
+
+    Post at a predictable time in a written channel.
+    <break time="350ms"/>
+    Thread replies to keep context tight.
+    <break time="400ms"/>
+
+    Micro‑challenge:
+    <break time="150ms"/>
+    run your next standup asynchronously,
+    <break time="150ms"/>
+    and close with owners and due dates.
+    <break time="500ms"/>
+
+    Result:
+    <break time="150ms"/>
+    clearer alignment,
+    <break time="150ms"/>
+    fewer meetings,
+    <break time="150ms"/>
+    more momentum.
+  </prosody>
+</speak>

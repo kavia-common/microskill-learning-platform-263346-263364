@@ -1,0 +1,5 @@
+Lesson seven. Micro-leadership with async standups.
+Keep updates lightweight and actionable: Yesterday—one concrete outcome. Today—the next clear step. Blockers—what you need and from whom.
+Post at a predictable time in a written channel. Thread replies to keep context tight.
+Micro-challenge: run your next standup asynchronously, and close with owners and due dates.
+Result: clearer alignment, fewer meetings, more momentum.
