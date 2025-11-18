@@ -163,8 +163,12 @@ export default function HomeFeedPage() {
             {items.map((l) => (
               <div key={l.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
-                  {/* Poster by video element muted without autoplay */}
-                  <video src={l.videoUrl} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {/* Prefer poster thumbnail if available; fallback to a muted metadata video preview */}
+                  {l.thumbnail ? (
+                    <img src={l.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <video src={l.videoUrl} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  )}
                   <div style={{ position: 'absolute', bottom: 8, left: 8, right: 8 }}>
                     <TagList tags={l.tags || []} />
                   </div>

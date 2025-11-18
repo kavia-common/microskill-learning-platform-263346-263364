@@ -4,6 +4,7 @@ import { inferFallbackCaptionLines } from '../utils/audioMapping';
 import { loadSettings } from '../utils/settings';
 import { addGlobalToast } from '../ui/ToastHost';
 import { globalAudioManager } from '../utils/audioManager';
+import { mapLessonToVideo } from '../utils/videoMapping';
 
 /**
  * PUBLIC_INTERFACE
@@ -17,12 +18,12 @@ export default function LessonPlayer({ src, poster, lesson }) {
   const [currentCaption, setCurrentCaption] = useState('');
   const [audioAvailable, setAudioAvailable] = useState(false);
   const [resolved, setResolved] = useState({ audioUrl: null, captionsUrl: null, textUrl: null, ssmlUrl: null, slug: '' });
-  const [resolving, setResolving] = useState(true);
+  const [videoResolved, setVideoResolved] = useState({ slug: '', videoUrl: null, posterUrl: null, captionsVttUrl: null });
 
   useEffect(() => {
     const v = videoRef.current;
     if (v) {
-      v.muted = true;
+      v.muted = true; // respect autoplay policy; user can unmute audio track if needed (separate)
       v.play().catch(() => {});
     }
   }, [src]);
@@ -34,19 +35,10 @@ export default function LessonPlayer({ src, poster, lesson }) {
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
-    const onLoadedMetadata = () => {};
-    const onPlaying = () => {};
-    const onWaiting = () => {};
     const onError = () => onAudioError();
     globalAudioManager.register(a, false);
-    a.addEventListener('loadedmetadata', onLoadedMetadata);
-    a.addEventListener('playing', onPlaying);
-    a.addEventListener('waiting', onWaiting);
     a.addEventListener('error', onError);
     return () => {
-      a.removeEventListener('loadedmetadata', onLoadedMetadata);
-      a.removeEventListener('playing', onPlaying);
-      a.removeEventListener('waiting', onWaiting);
       a.removeEventListener('error', onError);
       globalAudioManager.unregister(a);
     };
@@ -55,13 +47,33 @@ export default function LessonPlayer({ src, poster, lesson }) {
   useEffect(() => {
     let cancelled = false;
     async function resolveAndLoad() {
-      setResolving(true);
       try {
         if (!lesson) return;
-        const r = await globalAudioManager.resolveForLesson(lesson);
+        const [vid, r] = await Promise.all([
+          mapLessonToVideo(lesson),
+          globalAudioManager.resolveForLesson(lesson),
+        ]);
         if (cancelled) return;
+        setVideoResolved(vid);
         setResolved(r);
-        // captions resolution similar to LessonCard
+
+        // captions priority: video VTT -> audio captions JSON -> audio text -> fallback
+        if (vid.captionsVttUrl) {
+          try {
+            const res = await fetch(vid.captionsVttUrl, { cache: 'no-store' });
+            if (res.ok) {
+              const vtt = await res.text();
+              const lines = vtt
+                .split(/\r?\n/)
+                .map(s => s.trim())
+                .filter(Boolean)
+                .filter((s) => !/^WEBVTT/i.test(s) && !/^\d{2}:\d{2}/.test(s));
+              const cues = lines.slice(0, 30).map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t }));
+              setCaptions(cues);
+              return;
+            }
+          } catch { /* fallback chain */ }
+        }
         if (r.captionsUrl) {
           try {
             const res = await fetch(r.captionsUrl, { cache: 'no-store' });
@@ -71,7 +83,7 @@ export default function LessonPlayer({ src, poster, lesson }) {
               setCaptions(cues);
               return;
             }
-          } catch { /* fallthrough */ }
+          } catch { /* next */ }
         }
         if (r.textUrl) {
           try {
@@ -83,12 +95,12 @@ export default function LessonPlayer({ src, poster, lesson }) {
               setCaptions(cues);
               return;
             }
-          } catch { /* fallthrough */ }
+          } catch { /* next */ }
         }
         const lines = lesson ? inferFallbackCaptionLines(lesson) : [];
         setCaptions(lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t })));
       } finally {
-        if (!cancelled) setResolving(false);
+        // no busy flag shown in detail; UI remains responsive
       }
     }
     resolveAndLoad();
@@ -111,17 +123,23 @@ export default function LessonPlayer({ src, poster, lesson }) {
 
   const onAudioError = () => addGlobalToast({ type: 'error', message: 'Audio failed to load' });
 
+  const videoSrc = src || videoResolved.videoUrl || null;
+  const posterSrc = poster || videoResolved.posterUrl || undefined;
+
   return (
     <div style={{ position: 'relative' }}>
-      <video
-        ref={videoRef}
-        src={src}
-        poster={poster}
-        muted
-        playsInline
-        controls
-        style={{ width: '100%', borderRadius: 12, border: '1px solid var(--border)' }}
-      />
+      {videoSrc && (
+        <video
+          ref={videoRef}
+          src={videoSrc}
+          poster={posterSrc}
+          muted
+          playsInline
+          controls
+          style={{ width: '100%', borderRadius: 12, border: '1px solid var(--border)' }}
+          onError={() => addGlobalToast({ type: 'error', message: 'Video failed to load. You can still use audio and captions.' })}
+        />
+      )}
       {audioAvailable && settings.audioOn && (
         <audio
           ref={audioRef}

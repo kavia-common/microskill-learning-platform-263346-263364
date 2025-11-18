@@ -84,7 +84,7 @@ export default function LessonDetailPage() {
     <div style={{ padding: 16, display: 'grid', gap: 12 }}>
       <TagList tags={lesson.tags || []} />
       <h1 style={{ margin: 0 }}>{lesson.title}</h1>
-      <LessonPlayer src={lesson.videoUrl} poster={lesson.thumbnail} lesson={lesson} />
+      <LessonPlayer src={lesson.videoUrl || null} poster={lesson.thumbnail || null} lesson={lesson} />
       <SummaryBox summary={derivedSummary} takeaways={derivedTakeaways} />
       <div style={{ display: 'flex', gap: 8 }}>
         <button className="btn" onClick={markWatched} disabled={saving}>Mark Watched</button>

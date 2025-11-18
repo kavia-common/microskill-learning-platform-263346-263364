@@ -4,7 +4,8 @@
   * Controlled via REACT_APP_USE_DUMMY='true' or used when API returns empty.
   *
   * Fields per lesson:
-  * - id, title, description, cta, tags, duration (minutes), media (optional)
+  * - id, title, description, cta, tags, duration (minutes)
+  * - optional: videoUrl, thumbnail (auto-resolved by title if missing)
   * - summary: short summary derived from description
   * - takeaways: up to three bullet points derived from description
   */
@@ -18,7 +19,7 @@
    softSkills: 'Soft Skills Boosters',
    saved: 'Your Saved Lessons',
  };
-
+ 
  export const emptyStates = {
    feed: 'No lessons yet. Explore new micro-skills soon!',
    profile: 'No profile activity yet. Start with your first micro lesson.',
@@ -27,14 +28,14 @@
    popular: 'Popular lessons will appear here.',
    recommended: 'We\'ll recommend lessons based on your activity.',
  };
-
+ 
  export const ctas = {
    takeQuiz: 'Take Quiz',
    startLesson: 'Start Lesson',
    beginQuiz: 'Begin Quiz',
    viewDetails: 'View Details',
  };
-
+ 
  function bulletsFrom(text) {
    if (!text) return [];
    const parts = text
@@ -47,24 +48,24 @@
    }
    return parts;
  }
-
+ 
  function summaryFrom(text) {
    if (!text) return 'A quick, practical micro-lesson to boost your skills.';
    const s = text.trim();
    return s.length > 160 ? s.slice(0, 157) + '...' : s;
  }
-
- // Seven dummy lessons
+ 
+ // Seven lessons mapped to topic-relevant canonical slugs per requirements
  const baseLessons = [
    {
      id: 'focus-60',
      title: '60-Second Focus Reset',
      description:
-       'Use a short breathing pattern and micro-break to reset attention. Try 4-4 breathing and a quick stretch to reduce cognitive load.',
+       'Use a short breathing pattern and micro-break to reset attention. Try the 4-4-6 reset and a quick stretch to reduce cognitive load.',
      cta: 'Start Lesson',
      tags: ['productivity', 'focus', 'wellbeing'],
      duration: 1,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
+     // -> 4-4-6-reset.mp4
    },
    {
      id: 'inbox-zero',
@@ -74,76 +75,76 @@
      cta: 'Start Lesson',
      tags: ['productivity', 'email', 'timeboxing'],
      duration: 2,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
+     // -> quick-inbox-zero.mp4
    },
    {
-     id: 'clear-ask',
-     title: 'Make a Clear Ask',
+     id: 'focus-sprints',
+     title: 'Focus Sprints',
      description:
-       'Use the CTA formula: Context, Task, Ask. Be specific with owners and deadlines to reduce back-and-forth.',
+       'Use short, intense focus intervals with brief, restorative breaks to maximize deep work and avoid burnout.',
      cta: 'Start Lesson',
-     tags: ['communication', 'soft skills', 'leadership'],
-     duration: 1,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
-   },
-   {
-     id: 'two-minute-rule',
-     title: 'The Two-Minute Rule',
-     description:
-       'If a task takes less than two minutes, do it now. Otherwise, schedule it. Keeps momentum while avoiding overload.',
-     cta: 'Start Lesson',
-     tags: ['productivity', 'habits'],
-     duration: 1,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4' },
-   },
-   {
-     id: 'feedback-fast',
-     title: 'Feedback in 30 Seconds',
-     description:
-       'Use SBI: Situation, Behavior, Impact. Keep it timely, specific, and focused on actions to improve outcomes.',
-     cta: 'Start Lesson',
-     tags: ['soft skills', 'feedback'],
-     duration: 1,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4' },
-   },
-   {
-     id: 'atomic-habit',
-     title: 'Make It Obvious',
-     description:
-       'Stack habits: After I [current habit], I will [new micro action]. Reduce friction and make it visible.',
-     cta: 'Start Lesson',
-     tags: ['habits', 'behavior change'],
-     duration: 1,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4' },
-   },
-   {
-     id: 'async-standup',
-     title: 'Async Standups That Work',
-     description:
-       'Share yesterday, today, blockers in a written channel. Keep updates lightweight and actionable for distributed teams.',
-     cta: 'Start Lesson',
-     tags: ['remote work', 'teamwork', 'communication'],
+     tags: ['productivity', 'deep work'],
      duration: 2,
-     media: { videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' },
+     // -> focus-sprints.mp4
+   },
+   {
+     id: 'gma',
+     title: 'G-M-A Formula',
+     description:
+       'A simple planning loop: Goals, Methods, Actions. Translate intentions into concrete steps to remove ambiguity.',
+     cta: 'Start Lesson',
+     tags: ['planning', 'productivity'],
+     duration: 2,
+     // -> g-m-a-formula.mp4
+   },
+   {
+     id: 'five-map',
+     title: 'Five-Minute Map',
+     description:
+       'Sketch a quick visual plan: outcomes, constraints, first next steps. Five minutes to clarify direction before starting.',
+     cta: 'Start Lesson',
+     tags: ['planning', 'strategy'],
+     duration: 1,
+     // -> five-minute-map.mp4
+   },
+   {
+     id: 'memory-ladder',
+     title: 'Memory Ladder',
+     description:
+       'Chain new information to memorable anchors. Use chunking and spaced recall to retain key ideas.',
+     cta: 'Start Lesson',
+     tags: ['learning', 'memory'],
+     duration: 2,
+     // -> memory-ladder.mp4
+   },
+   {
+     id: 'micro-leadership',
+     title: 'Micro Leadership Tips',
+     description:
+       'Practice small leadership behaviors daily: clear asks, celebrate wins, unblock decisively, and model curiosity.',
+     cta: 'Start Lesson',
+     tags: ['leadership', 'communication'],
+     duration: 2,
+     // -> micro-leadership-tips.mp4
    },
  ];
-
- // Normalize with derived fields that our UI expects (summary, takeaways, videoUrl, durationSeconds)
+ 
+ // Normalize with derived fields expected by UI. Video/thumbnail resolved later by mapping if absent.
  export const dummyLessons = baseLessons.map((l) => {
    const summary = summaryFrom(l.description);
    const takeaways = bulletsFrom(l.description);
    const durationSeconds = Math.max(30, (l.duration || 1) * 60);
-   const videoUrl = l.media?.videoUrl || 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-   const thumbnail = undefined;
+   const videoUrl = l.videoUrl || null;
+   const thumbnail = l.thumbnail || null;
    return { ...l, summary, takeaways, durationSeconds, videoUrl, thumbnail };
  });
-
+ 
  // PUBLIC_INTERFACE
  export function getDummyLessons() {
    /** Returns the normalized dummy lessons array. */
    return dummyLessons;
  }
-
+ 
  // PUBLIC_INTERFACE
  export function useDummyContentFlag() {
    /**
