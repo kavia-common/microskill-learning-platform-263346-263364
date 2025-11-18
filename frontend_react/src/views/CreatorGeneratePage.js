@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { addGlobalToast } from '../ui/ToastHost';
 import { generateLessonAI, generateMediaAI } from '../services/api';
 import { toVideoSlug } from '../utils/videoMapping';
+import { probeBackend, buildBackendUrl, getBackendBase } from '../services/health';
 
 /**
  * PUBLIC_INTERFACE
@@ -15,6 +16,23 @@ export default function CreatorGeneratePage() {
   const [mediaBusy, setMediaBusy] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [backendWarning, setBackendWarning] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    // Probe backend root using derived base
+    (async () => {
+      const base = getBackendBase();
+      const probe = await probeBackend((p) => (base ? `${base}${p}` : p));
+      if (!active) return;
+      if (!probe.ok) {
+        const msg = `Cannot reach backend at "${base || '(same origin)'}". ` +
+          `Set REACT_APP_API_BASE to your backend URL (e.g. http://localhost:3001). ${probe.message || ''}`;
+        setBackendWarning(msg);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   const generate = async () => {
     setBusy(true);
@@ -70,6 +88,15 @@ export default function CreatorGeneratePage() {
   return (
     <div style={{ padding: 16, maxWidth: 800, margin: '0 auto', display: 'grid', gap: 12 }}>
       <h2>Create with AI</h2>
+      {backendWarning && (
+        <div style={{ background: '#1F2937', border: '1px solid #EF4444', color: '#ffffff', padding: 12, borderRadius: 8 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Backend not reachable</div>
+          <div style={{ fontSize: 12, opacity: 0.9 }}>{backendWarning}</div>
+          <div style={{ fontSize: 12, opacity: 0.9, marginTop: 6 }}>
+            Current base: <code>{getBackendBase() || '(same-origin)'}</code>. Health URL tried: <code>{buildBackendUrl('/')}</code>
+          </div>
+        </div>
+      )}
       <div style={{ display: 'grid', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
         <label>
           <div>Topic</div>
