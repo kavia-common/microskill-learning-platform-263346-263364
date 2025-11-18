@@ -30,6 +30,10 @@ const inferredBase = (() => {
 
 function buildUrl(path) {
   const trimmed = inferredBase.endsWith('/') ? inferredBase.slice(0, -1) : inferredBase;
+  // If no explicit base is configured, return same-origin path (suitable for CRA proxy or same-origin API)
+  if (!trimmed) {
+    return path;
+  }
   return `${trimmed}${path}`;
 }
 
@@ -41,11 +45,15 @@ async function responseToError(res) {
   const msg =
     payload?.error?.message ||
     payload?.message ||
-    res.statusText ||
+    `${res.status} ${res.statusText || ''}`.trim() ||
     'Request failed';
   const err = new Error(msg);
   err.status = res.status;
   err.payload = payload;
+  // Surface CORS-like hints
+  if (res.type === 'opaque') {
+    err.hint = 'CORS or network issue';
+  }
   return err;
 }
 

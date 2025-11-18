@@ -123,10 +123,18 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
       if (v) {
         v.loop = true;
         v.muted = true; // respect autoplay policy
-        v.play().catch((e) => {
-          // Non-blocking: toast and rely on audio fallback if exists
-          addGlobalToast({ type: 'error', message: 'Video failed to play. Falling back to audio.' });
-        });
+        const p = v.play();
+        if (p && typeof p.then === 'function') {
+          p.catch((e) => {
+            // Non-blocking: toast and rely on audio fallback if exists
+            const t = String(e || '').toLowerCase();
+            const isPolicy = t.includes('user') || t.includes('gesture') || t.includes('autoplay');
+            const msg = isPolicy ? 'Autoplay blocked. Scroll or interact to start video.' : 'Video failed to play. Falling back to audio.';
+            addGlobalToast({ type: 'error', message: msg });
+          });
+        }
+        const onError = () => addGlobalToast({ type: 'error', message: 'Video failed to load. Falling back to audio.' });
+        v.addEventListener('error', onError);
       }
       if (a && settings.audioOn && settings.autoplayOn && audioAvailable) {
         setBuffering(true);
@@ -155,6 +163,11 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
       if (v) { try { v.pause(); } catch {} }
       if (a) { try { a.pause(); } catch {} }
     }
+    return () => {
+      if (v) {
+        try { v.removeEventListener('error', () => {}); } catch {}
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, settings, audioAvailable]);
 

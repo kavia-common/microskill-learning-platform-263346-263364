@@ -152,10 +152,37 @@ These controls are available in the Navbar and persist in `localStorage`.
 
 ## Troubleshooting
 
-- Verify expected filenames and directories under `public/assets/`.
-- Use `REACT_APP_VIDEO_TITLE_MAP` or `REACT_APP_AUDIO_TITLE_MAP` for custom mapping.
-- Dev servers may not support `HEAD`; resolvers fall back to `GET Range` and then `GET`.
-- If playback is blocked by autoplay policies, unmute to start playback.
+Short troubleshooting matrix:
+- Symptom: "Generation failed" or "Media generation failed"
+  - Checks:
+    1) Backend running at http://localhost:3001 (or your deployed URL)
+    2) Frontend .env sets REACT_APP_API_BASE=http://localhost:3001
+    3) If no env, on localhost frontend will default to http://localhost:3001; otherwise same-origin is used
+    4) If you prefer proxy, configure dev server to map /api -> backend or use /backend proxy and set REACT_APP_API_BASE accordingly
+- Symptom: Video doesn't autoplay
+  - Likely autoplay policy. Interact with the page, or unmute audio. A toast will indicate remediation.
+- Symptom: Video not found / failing to load
+  - Confirm files exist:
+    - public/assets/video/mp4/{slug}.mp4
+    - public/assets/video/thumb/{slug}.jpg|png (optional)
+    - public/assets/captions/{slug}.vtt (or captions JSON via audio mapping)
+- Symptom: Captions missing
+  - Provide a VTT under public/assets/captions/{slug}.vtt OR a JSON cue sheet under public/assets/audio/captions/{slug}.captions.json
+  - App also derives simple captions from summary/description as a fallback.
+
+Final configuration checklist:
+- Frontend
+  - [ ] REACT_APP_API_BASE set (e.g., http://localhost:3001) OR use localhost default
+  - [ ] Optional: configure a dev proxy so same-origin calls to /api are forwarded to backend (e.g., CRA proxy or reverse proxy)
+  - [ ] Optional: REACT_APP_VIDEO_TITLE_MAP / REACT_APP_AUDIO_TITLE_MAP for custom title -> slug mapping
+  - [ ] Optional: REACT_APP_USE_DUMMY=true for demos without backend
+- Backend
+  - [ ] /api/generate-lesson and /api/generate-media available (CORS enabled if cross-origin)
+  - [ ] Media generator writes to public/assets/video/mp4 and public/assets/captions with slug-based filenames
+- Assets
+  - [ ] MP4 in public/assets/video/mp4/{slug}.mp4
+  - [ ] VTT in public/assets/captions/{slug}.vtt or JSON cues in public/assets/audio/captions/{slug}.captions.json
+  - [ ] Optional thumbnails in public/assets/video/thumb/{slug}.jpg|png
 
 Expected behavior:
 - Active feed card plays video muted and attempts audio muted.

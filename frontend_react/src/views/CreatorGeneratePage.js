@@ -42,8 +42,10 @@ export default function CreatorGeneratePage() {
       setResult(data);
       addGlobalToast({ type: 'success', message: 'Lesson draft generated' });
     } catch (e) {
-      setError(String(e.message || e));
-      addGlobalToast({ type: 'error', message: 'Generation failed' });
+      const msg = String(e?.message || e || 'Generation failed');
+      setError(msg);
+      const remediation = 'Check backend is running and REACT_APP_API_BASE points to it (e.g., http://localhost:3001).';
+      addGlobalToast({ type: 'error', message: `Generation failed. ${remediation}` });
     } finally {
       setBusy(false);
     }
@@ -74,10 +76,11 @@ export default function CreatorGeneratePage() {
       const { lesson } = result;
       const r = await generateMediaAI({ title: lesson.title, summary: lesson.summary, takeaways: lesson.takeaways });
       addGlobalToast({ type: 'success', message: 'Media generated' });
-      // Refresh mapping hints by reloading the page assets (cache-bypass not strictly necessary)
       setResult({ ...result, media: r });
     } catch (e) {
-      addGlobalToast({ type: 'error', message: String(e.message || 'Media generation failed') });
+      const msg = String(e?.message || 'Media generation failed');
+      const remediation = 'Ensure backend /api/generate-media is reachable and writes to /public/assets paths.';
+      addGlobalToast({ type: 'error', message: `${msg}. ${remediation}` });
     } finally {
       setMediaBusy(false);
     }

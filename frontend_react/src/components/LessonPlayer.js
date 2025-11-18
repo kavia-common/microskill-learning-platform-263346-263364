@@ -24,7 +24,24 @@ export default function LessonPlayer({ src, poster, lesson }) {
     const v = videoRef.current;
     if (v) {
       v.muted = true; // respect autoplay policy; user can unmute audio track if needed (separate)
-      v.play().catch(() => {});
+      const p = v.play();
+      if (p && typeof p.then === 'function') {
+        p.catch((e) => {
+          // Autoplay policy or network issue
+          const t = String(e || '').toLowerCase();
+          const isPolicy = t.includes('user') || t.includes('gesture') || t.includes('autoplay');
+          const msg = isPolicy
+            ? 'Autoplay blocked. Press play to start video, or use audio + captions.'
+            : 'Video failed to start. Falling back to audio + captions.';
+          addGlobalToast({ type: 'error', message: msg });
+        });
+      }
+      // Attach error listeners to detect network stalls
+      const onError = () => addGlobalToast({ type: 'error', message: 'Video failed to load. You can still use audio and captions.' });
+      v.addEventListener('error', onError);
+      return () => {
+        v.removeEventListener('error', onError);
+      };
     }
   }, [src]);
 
@@ -62,8 +79,17 @@ export default function LessonPlayer({ src, poster, lesson }) {
           try {
             const res = await fetch(vid.captionsVttUrl, { cache: 'no-store' });
             if (res.ok) {
-              const vtt = await res.text();
-              const lines = vtt
+              const text = await res.text();
+              // If content-type is JSON or looks like JSON, parse as cues
+              const trimmed = text.trim();
+              if ((trimmed.startsWith('{') || trimmed.startsWith('['))) {
+                try {
+                  const data = JSON.parse(trimmed);
+                  const cues = Array.isArray(data) ? data : (data?.cues || []);
+                  if (cues.length) { setCaptions(cues); return; }
+                } catch { /* fall back to VTT parse */ }
+              }
+              const lines = text
                 .split(/\r?\n/)
                 .map(s => s.trim())
                 .filter(Boolean)
@@ -80,8 +106,7 @@ export default function LessonPlayer({ src, poster, lesson }) {
             if (res.ok) {
               const data = await res.json();
               const cues = Array.isArray(data) ? data : (data?.cues || []);
-              setCaptions(cues);
-              return;
+              if (cues.length > 0) { setCaptions(cues); return; }
             }
           } catch { /* next */ }
         }
