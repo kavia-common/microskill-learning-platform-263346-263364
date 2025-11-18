@@ -6,6 +6,7 @@ import { Skeleton } from '../ui/Skeleton';
 import TagList from '../components/TagList';
 import { addGlobalToast } from '../ui/ToastHost';
 import { ctas, emptyStates, getDummyLessons, sectionHeadings, useDummyContentFlag } from '../data/dummyLessons';
+import DiagnosticsPanel from '../components/DiagnosticsPanel';
 
 /**
  * PUBLIC_INTERFACE
@@ -40,7 +41,6 @@ export default function HomeFeedPage() {
       let fallbackUsed = false;
       if (!useDummy) {
         try {
-          // Load skills and map to lesson-like cards for feed/grid display
           const skills = await listSkills();
           all = (skills || []).map((s) => ({
             id: s.id,
@@ -50,7 +50,6 @@ export default function HomeFeedPage() {
             cta: 'Start Lesson',
             tags: s.tags || [],
             durationSeconds: Math.max(60, (s.duration || 1) * 60),
-            // video mapping utilities will attempt to resolve by title/id
             videoUrl: null,
             thumbnail: null,
           }));
@@ -67,7 +66,6 @@ export default function HomeFeedPage() {
         setItems([]);
         paginateAndAppend(all, 0);
       } else if (fallbackUsed && items.length === 0) {
-        // In case first load failed earlier, seed now
         paginateAndAppend(all, page);
       }
     } catch (e) {
@@ -160,6 +158,12 @@ export default function HomeFeedPage() {
     </div>
   );
 
+  const diagnostics = (
+    <div style={{ padding: '12px 12px 24px' }}>
+      <DiagnosticsPanel />
+    </div>
+  );
+
   if (viewMode === 'grid') {
     return (
       <div style={{ minHeight: 'calc(100vh - 56px)', overflowY: 'auto' }} ref={containerRef}>
@@ -176,7 +180,6 @@ export default function HomeFeedPage() {
             {items.map((l) => (
               <div key={l.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ position: 'relative', aspectRatio: '16/9', background: '#000' }}>
-                  {/* Prefer poster thumbnail if available; fallback to a muted metadata video preview */}
                   {l.thumbnail ? (
                     <img src={l.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
@@ -216,6 +219,8 @@ export default function HomeFeedPage() {
           <h2>{sectionHeadings.recommended}</h2>
           {!items.length && <div style={{ color: 'var(--muted)' }}>{emptyStates.recommended}</div>}
         </section>
+
+        {diagnostics}
       </div>
     );
   }
@@ -253,6 +258,7 @@ export default function HomeFeedPage() {
       {!hasMore && items.length > 0 && (
         <div style={{ textAlign: 'center', padding: 16, color: 'var(--muted)' }}>You reached the end</div>
       )}
+      {diagnostics}
     </div>
   );
 }

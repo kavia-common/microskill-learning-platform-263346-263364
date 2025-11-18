@@ -1,47 +1,60 @@
- /**
-  * PUBLIC_INTERFACE
-  * Backend health/diagnostics helper functions used by CreatorGeneratePage and DiagnosticsPanel.
-  */
+import { runtime } from '../utils/settings';
+import { __buildApiUrl as buildApiUrl } from './api';
 
-import { __buildApiUrl as buildApiUrl, __apiBase as apiBase } from './api';
+/**
+ * Run a series of health checks and return a status map.
+ * - api: GET health path (default /health)
+ * - generator: POST /generate/lesson (dry-run with seed='healthcheck')
+ * - assets: attempt to load a known app asset (index.css)
+ */
+// PUBLIC_INTERFACE
+export async function checkHealth() {
+  const results = {
+    api: { ok: false, status: 0, message: '' },
+    generator: { ok: false, status: 0, message: '' },
+    assets: { ok: false, status: 0, message: '' },
+    baseUrl: runtime.apiBase,
+  };
 
-/** PUBLIC_INTERFACE */
-export function getBackendBase() {
-  /** Returns the resolved backend base URL or '' for same-origin. */
-  return apiBase || '';
-}
-
-/** PUBLIC_INTERFACE */
-export function buildBackendUrl(path) {
-  /** Builds a full URL for backend endpoint using configured base. */
-  return buildApiUrl(path);
-}
-
-/** PUBLIC_INTERFACE */
-export async function probeBackend(build = (p) => buildApiUrl(p)) {
-  /** Checks health endpoint and returns { ok, status, message }. */
+  // API
   try {
-    const res = await fetch(build('/'), { cache: 'no-store' });
-    if (!res.ok) return { ok: false, status: res.status, message: res.statusText || 'health not ok' };
-    const json = await res.json().catch(() => null);
-    return { ok: true, status: res.status, message: json?.message || 'ok' };
+    const res = await fetch(buildApiUrl(runtime.healthPath), { method: 'GET', cache: 'no-store' });
+    results.api.ok = res.ok;
+    results.api.status = res.status;
+    results.api.message = res.ok ? 'OK' : `HTTP ${res.status}`;
   } catch (e) {
-    return { ok: false, status: 0, message: String(e?.message || e) };
+    results.api.ok = false;
+    results.api.status = 0;
+    results.api.message = 'Network/CORS error';
   }
-}
 
-/** PUBLIC_INTERFACE */
-export async function probeApiEndpoints(build = (p) => buildApiUrl(p)) {
-  /** Probes OPTIONS for generate endpoints to confirm reachability. */
-  const endpoints = ['/api/generate-lesson', '/api/generate-media'];
-  const out = {};
-  await Promise.all(endpoints.map(async (ep) => {
-    try {
-      const r = await fetch(build(ep), { method: 'OPTIONS' });
-      out[ep] = { ok: r.ok, status: r.status, message: r.statusText || '' };
-    } catch (e) {
-      out[ep] = { ok: false, status: 0, message: String(e?.message || e) };
-    }
-  }));
-  return out;
+  // Generator (best-effort; don't fail app on CORS)
+  try {
+    const res = await fetch(buildApiUrl('/generate/lesson'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seed: 'healthcheck' }),
+    });
+    results.generator.ok = res.ok;
+    results.generator.status = res.status;
+    results.generator.message = res.ok ? 'OK' : `HTTP ${res.status}`;
+  } catch (e) {
+    results.generator.ok = false;
+    results.generator.status = 0;
+    results.generator.message = 'Network/CORS error';
+  }
+
+  // Assets (check app stylesheet as proxy for static availability)
+  try {
+    const res = await fetch('/index.css', { method: 'GET', cache: 'no-store' });
+    results.assets.ok = res.ok;
+    results.assets.status = res.status;
+    results.assets.message = res.ok ? 'OK' : `HTTP ${res.status}`;
+  } catch (e) {
+    results.assets.ok = false;
+    results.assets.status = 0;
+    results.assets.message = 'Asset load error';
+  }
+
+  return results;
 }

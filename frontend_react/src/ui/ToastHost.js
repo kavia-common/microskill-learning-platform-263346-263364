@@ -1,22 +1,10 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 
 const ToastCtx = createContext({ addToast: () => {} });
-// PUBLIC_INTERFACE
-// Use addGlobalToast({ type: 'error'|'success'|'info', message: '...' }) anywhere to show actionable toasts.
-// Example:
-// import { addGlobalToast } from '../ui/ToastHost';
-// addGlobalToast({ type: 'error', message: 'Backend unreachable. Check REACT_APP_API_BASE and CORS.' });
-
-let listeners = [];
 
 // PUBLIC_INTERFACE
 export function addGlobalToast(toast) {
-  /** Adds a toast globally; gracefully no-ops if no host is mounted yet. */
   if (listeners.length === 0) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.debug('[ToastHost] addGlobalToast before mount', toast);
-    }
     return;
   }
   listeners.forEach((l) => {
@@ -25,6 +13,8 @@ export function addGlobalToast(toast) {
     } catch {}
   });
 }
+
+let listeners = [];
 
 /**
  * PUBLIC_INTERFACE
@@ -35,9 +25,10 @@ export function useToasts() {
 }
 
 /**
- * ToastHost renders small toasts at bottom.
+ * PUBLIC_INTERFACE
+ * ToastHost renders small toasts at bottom and provides context.
  */
-export default function ToastHost() {
+export default function ToastHost({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((toast) => {
@@ -59,28 +50,26 @@ export default function ToastHost() {
 
   return (
     <ToastCtx.Provider value={{ addToast }}>
-      <div style={{ position: 'fixed', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+      {children}
+      <div style={{ position: 'fixed', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none', zIndex: 1000 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {toasts.map(t => (
             <div key={t.id} role="status" aria-live="assertive" style={{
               pointerEvents: 'auto',
-              background: t.type === 'error' ? '#7F1D1D' : '#1F2937',
-              border: '1px solid var(--border)',
-              color: 'var(--text)',
+              background: t.type === 'error' ? '#7F1D1D' : t.type === 'success' ? '#065F46' : '#1F2937',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: '#fff',
               padding: '10px 12px',
               borderRadius: 12,
               minWidth: 220,
               textAlign: 'center',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-              transform: 'translateY(0)',
-              transition: 'all .2s ease'
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4)'
             }}>
               {t.message}
             </div>
           ))}
         </div>
       </div>
-      {/* Children injected via Layout context usage */}
     </ToastCtx.Provider>
   );
 }

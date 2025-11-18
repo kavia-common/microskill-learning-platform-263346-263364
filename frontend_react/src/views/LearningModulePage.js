@@ -1,114 +1,72 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getSkill, getSkillProgress, updateSkillProgress } from '../services/api';
-import '../lms.css';
+import React, { useEffect, useState } from 'react';
+import { getLesson, updateProgress } from '../services/api';
+import { useParams, Link } from 'react-router-dom';
+import { Skeleton } from '../ui/Skeleton';
+import ToastHost, { addGlobalToast } from '../ui/ToastHost';
 
 // PUBLIC_INTERFACE
 export default function LearningModulePage() {
   /**
-   * Learning module view: displays lesson content area, next/prev, progress bar, mark complete.
+   * Learning module view: displays module content, next/prev, marks progress.
    */
-  const { skillId, lessonId } = useParams();
-  const navigate = useNavigate();
-  const [skill, setSkill] = useState(null);
-  const [progress, setProgress] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-
-  const userId = useMemo(() => {
-    const key = 'lms_user_id';
-    let v = localStorage.getItem(key);
-    if (!v) {
-      v = `anon_${Math.random().toString(36).slice(2, 10)}`;
-      localStorage.setItem(key, v);
-    }
-    return v;
-  }, []);
+  const { id } = useParams();
+  const [lesson, setLesson] = useState(null);
+  const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let active = true;
-    async function load() {
-      setErr('');
+    let mounted = true;
+    (async () => {
+      setLoading(true);
       try {
-        const s = await getSkill(skillId);
-        if (!active) return;
-        setSkill(s);
-        const pr = await getSkillProgress(skillId);
-        if (!active) return;
-        setProgress(pr);
+        const data = await getLesson(id);
+        if (mounted) setLesson(data);
       } catch (e) {
-        if (!active) return;
-        setErr(e.message || 'Failed to load module');
+        addGlobalToast({ type: 'error', message: e?.message || 'Failed to load lesson' });
+      } finally {
+        if (mounted) setLoading(false);
       }
-    }
-    load();
-    return () => { active = false; };
-  }, [skillId]);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
-  if (err) {
-    return <div style={{ padding: 16, color: '#EF4444' }}>{err}</div>;
-  }
-  if (!skill) {
-    return <div style={{ padding: 16, color: 'var(--muted)' }}>Loading…</div>;
-  }
-
-  const idx = skill.lessons.findIndex(l => l.id === lessonId);
-  const cur = skill.lessons[idx] || skill.lessons[0];
-  const prevId = idx > 0 ? skill.lessons[idx - 1].id : null;
-  const nextId = idx < skill.lessons.length - 1 ? skill.lessons[idx + 1].id : null;
-  const pct = progress?.stats?.overall || 0;
-  const rec = progress?.items?.find(i => i.lessonId === cur.id);
-  const done = !!rec?.completed;
-
-  const markComplete = async () => {
-    setBusy(true);
+  const markProgress = async (nextIndex, status) => {
     try {
-      const pr = await updateSkillProgress(skillId, { lessonId: cur.id, completed: true, watched: true });
-      setProgress(pr);
+      await updateProgress({ lessonId: id, moduleIndex: nextIndex, status });
     } catch (e) {
-      setErr(e.message || 'Failed to update progress');
-    } finally {
-      setBusy(false);
+      addGlobalToast({ type: 'info', message: 'Progress sync delayed. Will retry later.' });
     }
   };
 
-  return (
-    <div style={{ padding: 16, display: 'grid', gap: 12 }}>
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-          <h1 style={{ margin: 0 }}>{skill.title}</h1>
-          <div style={{ flex: 1, marginLeft: 16 }}>
-            <div style={{ height: 10, borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden', background: '#111' }}>
-              <div style={{ height: '100%', width: `${pct}%`, background: 'linear-gradient(90deg, var(--primary), var(--secondary))' }} />
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{pct}% complete</div>
-          </div>
-          <Link className="btn" to={`/skill/${encodeURIComponent(skill.id)}`}>Back to skill</Link>
-        </div>
-      </div>
+  const next = async () => {
+    const total = lesson?.modules?.length || 1;
+    const nextIndex = Math.min(index + 1, total - 1);
+    await markProgress(nextIndex, nextIndex === total - 1 ? 'completed' : 'in_progress');
+    setIndex(nextIndex);
+  };
 
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-          <div style={{ fontWeight: 800 }}>{cur.title}</div>
-          <div style={{ color: 'var(--muted)' }}>{cur.duration}m</div>
-        </div>
-        <div style={{ color: 'var(--muted)', marginTop: 6 }}>
-          Lesson content goes here. Use the controls below to navigate and mark complete.
-        </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          {prevId ? (
-            <button className="btn" onClick={() => navigate(`/learn/${encodeURIComponent(skill.id)}/${encodeURIComponent(prevId)}`)}>&larr; Prev</button>
-          ) : <button className="btn" disabled>&larr; Prev</button>}
-          {nextId ? (
-            <button className="btn" onClick={() => navigate(`/learn/${encodeURIComponent(skill.id)}/${encodeURIComponent(nextId)}`)}>Next &rarr;</button>
-          ) : <button className="btn" disabled>Next &rarr;</button>}
-          {!done ? (
-            <button className="btn primary" onClick={markComplete} disabled={busy}>Mark complete</button>
-          ) : (
-            <span style={{ color: 'var(--secondary)' }}>Completed ✓</span>
-          )}
-        </div>
+  const prev = () => {
+    setIndex(Math.max(index - 1, 0));
+  };
+
+  if (loading) return <Skeleton lines={5} />;
+  if (!lesson) return <p role="alert" style={{ color: '#EF4444' }}>Lesson not found</p>;
+
+  const current = lesson.modules?.[index] || { title: '', content: '' };
+
+  return (
+    <div className="container">
+      <h2>{lesson.title}</h2>
+      <h3>{current.title}</h3>
+      <p>{current.content}</p>
+      <div>
+        <button onClick={prev} disabled={index === 0}>Prev</button>
+        <button onClick={next} disabled={index >= (lesson.modules?.length || 1) - 1}>Next</button>
+        {index >= (lesson.modules?.length || 1) - 1 && <Link to={`/quiz/${id}`}>Take Quiz</Link>}
       </div>
+      <ToastHost />
     </div>
   );
 }
