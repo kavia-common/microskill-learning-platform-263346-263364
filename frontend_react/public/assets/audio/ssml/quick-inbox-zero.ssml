@@ -1,0 +1,19 @@
+<ssml>
+  <speak>
+    <voice name="Joanna">
+      <prosody rate="105%" pitch="+2%">
+        Inbox taking over your day? <break time="200ms"/> Let’s clear it fast.
+        <break time="250ms"/>
+        First, batch email — check it twice: morning and afternoon. <break time="150ms"/> Mute notifications the rest of the time.
+        <break time="300ms"/>
+        Next, triage with the four Ds. <emphasis level="moderate">Delete</emphasis> noise. <emphasis level="moderate">Delegate</emphasis> what belongs elsewhere. <emphasis level="moderate">Do</emphasis> anything under two minutes. <emphasis level="moderate">Defer</emphasis> the rest with a scheduled follow‑up.
+        <break time="300ms"/>
+        Then, give emails a home: Action for your short list, Waiting for follow‑ups, and Archive for everything searchable.
+        <break time="300ms"/>
+        In practice: delete promos, delegate invoices, reply to quick messages, and defer long drafts with a date.
+        <break time="300ms"/>
+        Recap: batch windows, four‑D triage, three folders. <break time="150ms"/> Action tip: add two calendar blocks today and start the kata. <break time="150ms"/> When you’re ready, take the quiz.
+      </prosody>
+    </voice>
+  </speak>
+</ssml>

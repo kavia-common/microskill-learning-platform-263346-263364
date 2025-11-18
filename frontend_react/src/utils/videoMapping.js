@@ -31,6 +31,10 @@ const CAPTIONS_VTT_BASE = '/assets/captions';
 
 // Aliases mentioned in requirements for seven topics
 const KNOWN_ALIAS_SLUGS = [
+  // Includes canonical slug for Quick Inbox Zero so resolvers look for:
+  // - /assets/video/mp4/quick-inbox-zero.mp4
+  // - /assets/video/thumb/quick-inbox-zero.(png|jpg)
+  // - /assets/captions/quick-inbox-zero.vtt
   'quick-inbox-zero',
   'focus-sprints',
   'g-m-a-formula',

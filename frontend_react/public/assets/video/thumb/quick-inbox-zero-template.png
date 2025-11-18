@@ -1,0 +1,10 @@
+[PNG PLACEHOLDER]
+This is a placeholder for the branded thumbnail template.
+Design guidance:
+- Background: #000000 (dark)
+- Title: "Quick Inbox Zero" in bold white
+- Subtitle chip: "3‑Move Kata" with rounded pill
+- Accent bars: #F97316 (primary) and #10B981 (secondary)
+- Safe areas for 9:16 and 16:9 crops
+Replace this file with an actual 1280x720 or 1080x1920 PNG named 'quick-inbox-zero-template.png' or export a final poster as:
+  public/assets/video/thumb/quick-inbox-zero.png

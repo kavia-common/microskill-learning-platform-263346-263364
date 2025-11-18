@@ -82,6 +82,29 @@ A sample thumbnail asset has been included for reference:
 - `/assets/video/thumb/sample-attachment.png`
 You can map a title to this by setting `REACT_APP_VIDEO_TITLE_MAP` to point your lesson’s title to `sample-attachment` and placing a corresponding mp4 if desired.
 
+## Quick Inbox Zero assets
+
+This lesson is supported out of the box via the canonical slug `quick-inbox-zero`. Place assets at:
+
+- Video (optional, preferred): `public/assets/video/mp4/quick-inbox-zero.mp4`
+- Poster thumbnail (optional): `public/assets/video/thumb/quick-inbox-zero.png` or `.jpg`  
+  A brand-styled template is provided here for guidance:  
+  `public/assets/video/thumb/quick-inbox-zero-template.png`
+- Captions (WebVTT): `public/assets/captions/quick-inbox-zero.vtt`
+- Audio fallback (optional): `public/assets/audio/mp3/quick-inbox-zero.mp3`
+- SSML (optional, for TTS): `public/assets/audio/ssml/quick-inbox-zero.ssml`
+
+Mapping behavior:
+- The resolvers first compute a slug from the lesson title and also check the alias registry, which includes `quick-inbox-zero`.
+- The Home Feed and Lesson Detail will auto-detect the VTT captions immediately. If `quick-inbox-zero.mp4` is not present, playback will gracefully fall back to audio + captions when audio exists; if no audio exists, captions still display based on VTT (or derived text).
+- You can override mappings via `REACT_APP_VIDEO_TITLE_MAP` or `REACT_APP_AUDIO_TITLE_MAP`.
+
+Expected file lookups for this lesson:
+- Video: `/assets/video/mp4/quick-inbox-zero.mp4`
+- Poster: `/assets/video/thumb/quick-inbox-zero.(png|jpg)`
+- Captions: `/assets/captions/quick-inbox-zero.vtt`
+- Audio: `/assets/audio/mp3/quick-inbox-zero.mp3`
+
 ### Playback behavior and policies
 
 - Home Feed cards:

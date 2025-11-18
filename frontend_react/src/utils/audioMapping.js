@@ -31,6 +31,7 @@ const CAPTIONS_BASE = '/assets/audio/captions';
 // Known alias slugs that might be present as asset filenames even if not equal to lesson id
 // Keep list extensible; these are examples provided in task description.
 const KNOWN_ALIAS_SLUGS = [
+  // Includes canonical slug for this lesson to ensure detection by alias
   'quick-inbox-zero',
   'focus-sprints',
   'g-m-a-formula',
