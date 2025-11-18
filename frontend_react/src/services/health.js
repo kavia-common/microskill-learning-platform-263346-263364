@@ -17,6 +17,41 @@
  }
  
  // PUBLIC_INTERFACE
+ export async function probeApiEndpoints(baseUrlBuilder) {
+   /**
+    * Check key endpoints for 200/JSON: /api/generate-lesson (OPTIONS allowed) and /api/generate-media (OPTIONS allowed).
+    * Returns a dictionary of endpoint -> { ok, status, message }.
+    */
+   const endpoints = ['/api/generate-lesson', '/api/generate-media'];
+   const results = {};
+   for (const ep of endpoints) {
+     const url = baseUrlBuilder ? baseUrlBuilder(ep) : ep;
+     try {
+       // Try OPTIONS first to detect CORS allowance, then a safe HEAD/GET
+       const opt = await fetch(url, { method: 'OPTIONS' }).catch(() => null);
+       if (opt && (opt.ok || opt.status === 204)) {
+         results[ep] = { ok: true, status: opt.status, message: 'CORS preflight OK' };
+         continue;
+       }
+       const head = await fetch(url, { method: 'HEAD' }).catch(() => null);
+       if (head && head.ok) {
+         results[ep] = { ok: true, status: head.status, message: 'HEAD OK' };
+         continue;
+       }
+       const getRes = await fetch(url, { method: 'GET' }).catch(() => null);
+       if (getRes && getRes.ok) {
+         results[ep] = { ok: true, status: getRes.status, message: 'GET OK' };
+       } else {
+         results[ep] = { ok: false, status: getRes?.status || 0, message: 'Not reachable' };
+       }
+     } catch (e) {
+       results[ep] = { ok: false, status: 0, message: `Network error: ${e?.message || e}` };
+     }
+   }
+   return results;
+ }
+ 
+ // PUBLIC_INTERFACE
  export function getBackendBase() {
    /** Returns the derived backend base URL used by the API client. */
    const envBase =

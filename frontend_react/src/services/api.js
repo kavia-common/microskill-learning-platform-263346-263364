@@ -1,4 +1,4 @@
- /**
+ /** 
   * API client for LMS backend.
   * Uses REACT_APP_API_BASE or REACT_APP_BACKEND_URL for base URL.
   * If not provided, attempt a sane dev fallback:
@@ -57,111 +57,120 @@ async function responseToError(res) {
   return err;
 }
 
+// Helper to fetch with robust error surfacing and optional toast callback
+async function fetchJson(url, options = {}, onErrorToast) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const err = await responseToError(res);
+      if (onErrorToast) {
+        onErrorToast({
+          status: err.status,
+          message: err.message,
+          hint: err.hint,
+          url
+        });
+      }
+      throw err;
+    }
+    return res.json();
+  } catch (e) {
+    if (onErrorToast && (!e.status || String(e.message || '').toLowerCase().includes('network'))) {
+      onErrorToast({
+        status: e.status || 0,
+        message: e.message || 'Network error',
+        hint: e.hint || 'Check CORS or server availability',
+        url
+      });
+    }
+    throw e;
+  }
+}
+
 // PUBLIC_INTERFACE
-export async function getLessons() {
+export async function getLessons(onErrorToast) {
   /** Fetch all lessons. */
-  const res = await fetch(buildUrl('/api/lessons'));
-  if (!res.ok) throw await responseToError(res);
-  return res.json();
+  return fetchJson(buildUrl('/api/lessons'), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function getLesson(id) {
+export async function getLesson(id, onErrorToast) {
   /** Fetch lesson detail by id. */
-  const res = await fetch(buildUrl(`/api/lessons/${id}`));
-  if (!res.ok) throw await responseToError(res);
-  return res.json();
+  return fetchJson(buildUrl(`/api/lessons/${id}`), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function getQuiz(lessonId) {
+export async function getQuiz(lessonId, onErrorToast) {
   /** Fetch quiz for lesson. */
-  const res = await fetch(buildUrl(`/api/lessons/${lessonId}/quiz`));
-  if (!res.ok) throw await responseToError(res);
-  return res.json();
+  return fetchJson(buildUrl(`/api/lessons/${lessonId}/quiz`), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function submitQuiz(lessonId, userId, answers) {
+export async function submitQuiz(lessonId, userId, answers, onErrorToast) {
   /** Submit quiz answers and get score. */
-  const res = await fetch(buildUrl(`/api/lessons/${lessonId}/quiz`), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, answers })
-  }).catch((e) => {
-    const err = new Error(`Network error: ${e?.message || e}`);
-    err.cause = e;
-    throw err;
-  });
-  if (!res.ok) throw await responseToError(res);
-  return res.json();
+  return fetchJson(
+    buildUrl(`/api/lessons/${lessonId}/quiz`),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, answers })
+    },
+    onErrorToast
+  );
 }
 
 // PUBLIC_INTERFACE
-export async function getProgress(userId) {
+export async function getProgress(userId, onErrorToast) {
   /** Get user progress. */
-  const res = await fetch(buildUrl(`/api/progress?userId=${encodeURIComponent(userId)}`));
-  if (!res.ok) throw await responseToError(res);
-  return res.json();
+  return fetchJson(buildUrl(`/api/progress?userId=${encodeURIComponent(userId)}`), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function updateProgress(payload) {
+export async function updateProgress(payload, onErrorToast) {
   /** Update user progress record. */
-  const res = await fetch(buildUrl('/api/progress'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  }).catch((e) => {
-    const err = new Error(`Network error: ${e?.message || e}`);
-    err.cause = e;
-    throw err;
-  });
-  if (!res.ok) throw await responseToError(res);
-  return res.json();
+  return fetchJson(
+    buildUrl('/api/progress'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    },
+    onErrorToast
+  );
 }
 
 // PUBLIC_INTERFACE
-export async function generateLessonAI({ topic, audience, tone, dryRun = false }) {
+export async function generateLessonAI({ topic, audience, tone, dryRun = false }, onErrorToast) {
   /**
    * Calls backend /api/generate-lesson to create lesson + quiz.
    * Returns: { lesson, quiz }
    */
-  const res = await fetch(buildUrl('/api/generate-lesson'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ topic, audience, tone, dryRun })
-  }).catch((e) => {
-    // Network-level errors (CORS, DNS, refused, etc.)
-    const err = new Error(`Network error: ${e?.message || e}`);
-    err.cause = e;
-    throw err;
-  });
-  if (!res.ok) {
-    throw await responseToError(res);
-  }
-  return res.json();
+  return fetchJson(
+    buildUrl('/api/generate-lesson'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, audience, tone, dryRun })
+    },
+    onErrorToast
+  );
 }
 
 // PUBLIC_INTERFACE
-export async function generateMediaAI({ title, summary, takeaways }) {
+export async function generateMediaAI({ title, summary, takeaways }, onErrorToast) {
   /**
    * Calls backend /api/generate-media to render local MP4 + VTT.
    * Returns: { slug, videoUrl, captionsUrl }
    */
-  const res = await fetch(buildUrl('/api/generate-media'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, summary, takeaways })
-  }).catch((e) => {
-    const err = new Error(`Network error: ${e?.message || e}`);
-    err.cause = e;
-    throw err;
-  });
-  if (!res.ok) {
-    throw await responseToError(res);
-  }
-  return res.json();
+  return fetchJson(
+    buildUrl('/api/generate-media'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, summary, takeaways })
+    },
+    onErrorToast
+  );
 }
 
 async function safeJson(res) {

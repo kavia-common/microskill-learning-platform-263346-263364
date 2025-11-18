@@ -151,9 +151,11 @@ export default function LessonPlayer({ src, poster, lesson }) {
   const videoSrc = src || videoResolved.videoUrl || null;
   const posterSrc = poster || videoResolved.posterUrl || undefined;
 
+  const showCaptionsOnlyHint = !videoSrc && !audioAvailable && (captions?.length > 0);
+
   return (
     <div style={{ position: 'relative' }}>
-      {videoSrc && (
+      {videoSrc ? (
         <video
           ref={videoRef}
           src={videoSrc}
@@ -164,6 +166,20 @@ export default function LessonPlayer({ src, poster, lesson }) {
           style={{ width: '100%', borderRadius: 12, border: '1px solid var(--border)' }}
           onError={() => addGlobalToast({ type: 'error', message: 'Video failed to load. You can still use audio and captions.' })}
         />
+      ) : (
+        <div style={{
+          width: '100%',
+          aspectRatio: '16/9',
+          borderRadius: 12,
+          border: '1px solid var(--border)',
+          background: '#000',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--muted)'
+        }}>
+          {audioAvailable ? 'Audio + captions will play without video.' : (showCaptionsOnlyHint ? 'Captions-only view (video/audio missing)' : 'Waiting for media…')}
+        </div>
       )}
       {audioAvailable && settings.audioOn && (
         <audio

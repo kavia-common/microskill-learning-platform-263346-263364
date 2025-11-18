@@ -247,7 +247,7 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
 
   return (
     <div className="lesson-card" aria-label={`Lesson ${lesson.title}`}>
-      {videoSrc && (
+      {videoSrc ? (
         <video
           ref={videoRef}
           src={videoSrc}
@@ -261,6 +261,10 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
             addGlobalToast({ type: 'error', message: 'Video failed to load. Falling back to audio.' });
           }}
         />
+      ) : (
+        <div style={{ width: '100%', height: '100%', background: '#000', position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
+          {audioAvailable ? 'Audio + captions (no video)' : (captionsAvailable ? 'Captions-only view (no video/audio)' : 'Media resolving…')}
+        </div>
       )}
       {/* Audio voiceover - hidden controls; show mute button separately. */}
       {resolved.audioUrl && settings.audioOn && (
