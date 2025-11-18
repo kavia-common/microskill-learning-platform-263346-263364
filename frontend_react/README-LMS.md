@@ -6,6 +6,22 @@ React app with vertical video feed, quiz modal, and progress.
 - Start: npm install && npm start
 - Routes: Single page; top right Progress toggles the view.
 
+## Micro Lessons (Video-first)
+
+- List: /micro-lessons fetches from GET {API_BASE}/api/lessons
+- Detail: /micro-lessons/:id fetches from GET {API_BASE}/api/lessons/:id
+- Narration: Uses Web Speech API (SpeechSynthesis) to read lesson.narrationScript or stripped SSML.
+- Captions: Displays lesson.captions (array) when present; player also supports VTT/JSON via utils mappings.
+- Kaviya Video Prompt: Toggle to view lesson.kaviyaVideoPrompt text block.
+- Mark Complete: POST {API_BASE}/api/progress with { userId, lessonId, watched, completed }.
+
+Configure API base:
+- Preferred: set REACT_APP_API_BASE in .env
+- Fallback: REACT_APP_BACKEND_URL
+- If neither set: same-origin; in localhost it falls back to http://localhost:3001
+
+See .env.example for variables.
+
 ## AI Generation (Optional)
 
 If the backend is running (see backend/README.md), you can:
@@ -196,6 +212,7 @@ Final configuration checklist:
   - [ ] Optional: REACT_APP_VIDEO_TITLE_MAP / REACT_APP_AUDIO_TITLE_MAP for custom title -> slug mapping
   - [ ] Optional: REACT_APP_USE_DUMMY=true for demos without backend
 - Backend
+  - [ ] /api/lessons, /api/lessons/:id and /api/progress available (CORS enabled if cross-origin)
   - [ ] /api/generate-lesson and /api/generate-media available (CORS enabled if cross-origin)
   - [ ] Media generator writes to public/assets/video/mp4 and public/assets/captions with slug-based filenames
 - Assets
@@ -204,6 +221,7 @@ Final configuration checklist:
   - [ ] Optional thumbnails in public/assets/video/thumb/{slug}.jpg|png
 
 Expected behavior:
+- Micro Lessons list and detail routes available from Navbar
 - Active feed card plays video muted and attempts audio muted.
 - Audio single-play enforcement across the feed.
 - Captions display via VTT when available, otherwise via audio/text fallback or derived summary.

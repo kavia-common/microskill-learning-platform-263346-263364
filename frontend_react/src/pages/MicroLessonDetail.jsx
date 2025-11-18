@@ -15,9 +15,9 @@ export default function MicroLessonDetail() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
-  const synthRef = useRef(window.speechSynthesis || null);
+  const synthRef = useRef(typeof window !== 'undefined' ? (window.speechSynthesis || null) : null);
 
-  const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
+  const apiBase = process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3001' : '');
   const userId = useMemo(() => {
     // simple anonymous id persisted in localStorage
     const k = 'ms_user_id';

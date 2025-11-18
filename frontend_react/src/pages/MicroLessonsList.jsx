@@ -11,8 +11,9 @@ export default function MicroLessonsList() {
   const [err, setErr] = useState(null);
 
   useEffect(() => {
-    const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:3001';
-    fetch(`${apiBase}/api/lessons`)
+    const apiBase = process.env.REACT_APP_API_BASE || process.env.REACT_APP_BACKEND_URL || '';
+    const base = apiBase || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3001' : '');
+    fetch(`${base}/api/lessons`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

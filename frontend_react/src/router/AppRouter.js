@@ -33,6 +33,9 @@ export default function AppRouter() {
           <Route path="/skills" element={<SkillsHomePage />} />
           <Route path="/skill/:id" element={<SkillDetailPage />} />
           <Route path="/learn/:skillId/:lessonId" element={<LearningModulePage />} />
+          {/* Micro-lesson list and detail (video-first) */}
+          <Route path="/micro-lessons" element={React.createElement(require('../pages/MicroLessonsList.jsx').default)} />
+          <Route path="/micro-lessons/:id" element={React.createElement(require('../pages/MicroLessonDetail.jsx').default)} />
           {/* Auth and creator */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
