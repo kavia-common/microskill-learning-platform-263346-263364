@@ -1,14 +1,16 @@
- // PUBLIC_INTERFACE
- /**
-  * Audio mapping utilities for lessons.
-  * Adds automatic title-based slug mapping with alias registry and env overrides.
-  * Progressive enhancement: audio/captions are optional; presence is probed at runtime.
-  *
-  * Env flags:
-  * - REACT_APP_LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error' (controls console telemetry)
-  * - REACT_APP_AUDIO_TITLE_MAP: JSON string mapping title variants to canonical slug
-  *   Example: {"Inbox Zero in Minutes":"quick-inbox-zero","Inbox Zero":"quick-inbox-zero"}
-  */
+import { runtime } from './settings';
+
+// PUBLIC_INTERFACE
+/**
+ * Audio mapping utilities for lessons.
+ * Adds automatic title-based slug mapping with alias registry and env overrides.
+ * Progressive enhancement: audio/captions are optional; presence is probed at runtime.
+ *
+ * Env flags:
+ * - REACT_APP_LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error' (controls console telemetry)
+ * - REACT_APP_AUDIO_TITLE_MAP: JSON string mapping title variants to canonical slug
+ *   Example: {"Inbox Zero in Minutes":"quick-inbox-zero","Inbox Zero":"quick-inbox-zero"}
+ */
 
 const LOG_LEVEL = (process.env.REACT_APP_LOG_LEVEL || 'info').toLowerCase();
 const LOG_LEVEL_ORDER = { debug: 10, info: 20, warn: 30, error: 40 };
@@ -22,6 +24,16 @@ function log(level, msg, meta) {
     (console[level] || console.log)(...payload);
   }
 }
+
+const API_BASE = (runtime && runtime.apiBase) || '';
+const prefix = (p) => {
+  if (!p) return p;
+  if (/^https?:\/\//i.test(p)) return p;
+  if (!API_BASE) return p;
+  const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+  const path = p.startsWith('/') ? p : `/${p}`;
+  return `${base}${path}`;
+};
 
 const AUDIO_MP3_BASE = '/assets/audio/mp3';
 const AUDIO_SSML_BASE = '/assets/audio/ssml';
@@ -206,8 +218,8 @@ export async function mapLessonToAudio(lesson) {
   const id = lesson?.id || '';
 
   // Step 1: legacy direct (by id)
-  const legacyMp3 = LEGACY_ID_TO_FILE[id] ? `${AUDIO_MP3_BASE}/${LEGACY_ID_TO_FILE[id]}` : null;
-  const legacyCaptions = LEGACY_ID_TO_CAPTIONS[id] ? `${CAPTIONS_BASE}/${LEGACY_ID_TO_CAPTIONS[id]}` : null;
+  const legacyMp3 = LEGACY_ID_TO_FILE[id] ? prefix(`${AUDIO_MP3_BASE}/${LEGACY_ID_TO_FILE[id]}`) : null;
+  const legacyCaptions = LEGACY_ID_TO_CAPTIONS[id] ? prefix(`${CAPTIONS_BASE}/${LEGACY_ID_TO_CAPTIONS[id]}`) : null;
 
   const registrySlug = TITLE_TO_SLUG[title] || TITLE_TO_SLUG[title.trim()] || null;
   const autoSlug = toSlug(title);
@@ -225,13 +237,13 @@ export async function mapLessonToAudio(lesson) {
   // Build candidate URLs
   const mp3Candidates = [
     ...(legacyMp3 ? [legacyMp3] : []),
-    ...candidateSlugs.map((s) => `${AUDIO_MP3_BASE}/${s}.mp3`),
+    ...candidateSlugs.map((s) => prefix(`${AUDIO_MP3_BASE}/${s}.mp3`)),
   ];
-  const ssmlCandidates = candidateSlugs.map((s) => `${AUDIO_SSML_BASE}/${s}.ssml`);
-  const textCandidates = candidateSlugs.map((s) => `${AUDIO_TEXT_BASE}/${s}.txt`);
+  const ssmlCandidates = candidateSlugs.map((s) => prefix(`${AUDIO_SSML_BASE}/${s}.ssml`));
+  const textCandidates = candidateSlugs.map((s) => prefix(`${AUDIO_TEXT_BASE}/${s}.txt`));
   const captionsCandidates = [
     ...(legacyCaptions ? [legacyCaptions] : []),
-    ...candidateSlugs.map((s) => `${CAPTIONS_BASE}/${s}.captions.json`),
+    ...candidateSlugs.map((s) => prefix(`${CAPTIONS_BASE}/${s}.captions.json`)),
   ];
 
   log('debug', '[audioMapping] Probing candidates', {

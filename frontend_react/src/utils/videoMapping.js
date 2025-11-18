@@ -1,18 +1,20 @@
- // PUBLIC_INTERFACE
- /**
-  * Video mapping utilities for lessons.
-  * Similar to audio mapping, this resolves title-based slugs and probes for:
-  * - /assets/video/mp4/{slug}.mp4
-  * - /assets/video/thumb/{slug}.jpg|png
-  * - /assets/captions/{slug}.vtt (WebVTT)
-  *
-  * Supports aliases and environment override:
-  * - REACT_APP_VIDEO_TITLE_MAP as a JSON string of { "Title Variant": "canonical-slug" }
-  *
-  * Notes:
-  * - We do not hardcode any secrets.
-  * - Progressive enhancement: if video is missing, the app should fall back to audio+captions.
-  */
+import { runtime } from './settings';
+
+// PUBLIC_INTERFACE
+/**
+ * Video mapping utilities for lessons.
+ * Similar to audio mapping, this resolves title-based slugs and probes for:
+ * - /assets/video/mp4/{slug}.mp4
+ * - /assets/video/thumb/{slug}.jpg|png
+ * - /assets/captions/{slug}.vtt (WebVTT)
+ *
+ * Supports aliases and environment override:
+ * - REACT_APP_VIDEO_TITLE_MAP as a JSON string of { "Title Variant": "canonical-slug" }
+ *
+ * Notes:
+ * - We do not hardcode any secrets.
+ * - Progressive enhancement: if video is missing, the app should fall back to audio+captions.
+ */
 
 const LOG_LEVEL = (process.env.REACT_APP_LOG_LEVEL || 'info').toLowerCase();
 const LOG_LEVEL_ORDER = { debug: 10, info: 20, warn: 30, error: 40 };
@@ -24,6 +26,16 @@ function vlog(level, msg, meta) {
     (console[level] || console.log)(meta ? msg : `[videoMapping] ${msg}`, meta || undefined);
   }
 }
+
+const API_BASE = (runtime && runtime.apiBase) || '';
+const prefix = (p) => {
+  if (!p) return p;
+  if (/^https?:\/\//i.test(p)) return p;
+  if (!API_BASE) return p;
+  const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+  const path = p.startsWith('/') ? p : `/${p}`;
+  return `${base}${path}`;
+};
 
 const VIDEO_BASE = '/assets/video/mp4';
 const THUMB_BASE = '/assets/video/thumb';
@@ -126,12 +138,12 @@ export async function mapLessonToVideo(lesson) {
   KNOWN_ALIAS_SLUGS.forEach(pushUnique);
 
   // Video and poster candidates
-  const videoCandidates = candidateSlugs.map((s) => `${VIDEO_BASE}/${s}.mp4`);
+  const videoCandidates = candidateSlugs.map((s) => prefix(`${VIDEO_BASE}/${s}.mp4`));
   const thumbCandidates = candidateSlugs.flatMap((s) => [
-    `${THUMB_BASE}/${s}.jpg`,
-    `${THUMB_BASE}/${s}.png`,
+    prefix(`${THUMB_BASE}/${s}.jpg`),
+    prefix(`${THUMB_BASE}/${s}.png`),
   ]);
-  const captionsCandidates = candidateSlugs.map((s) => `${CAPTIONS_VTT_BASE}/${s}.vtt`);
+  const captionsCandidates = candidateSlugs.map((s) => prefix(`${CAPTIONS_VTT_BASE}/${s}.vtt`));
 
   vlog('debug', '[videoMapping] Probing video/thumb/captions candidates', {
     id, title, candidateSlugs, videoCandidates, thumbCandidates, captionsCandidates
