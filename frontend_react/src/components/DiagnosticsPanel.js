@@ -7,6 +7,7 @@ export default function DiagnosticsPanel() {
   const [status, setStatus] = useState(null);
   const [mediaDiag, setMediaDiag] = useState(null);
   const [playbackProbe, setPlaybackProbe] = useState(null);
+  const [report, setReport] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -15,6 +16,28 @@ export default function DiagnosticsPanel() {
       try {
         const diag = await runMediaEndpointDiagnostics('quick-inbox-zero');
         setMediaDiag(diag);
+        // Build a structured report for copy/paste when there are failures
+        const failures = [];
+        if (!(diag?.assertions?.videoOk)) {
+          failures.push({
+            endpoint: diag?.urls?.videoUrl,
+            method: 'HEAD (primary), GET (aux)',
+            head: diag?.results?.headVideo,
+            get: diag?.results?.getVideo,
+            expected: { status: 200, contentTypePrefix: 'video/mp4' },
+          });
+        }
+        if (!(diag?.assertions?.vttOk)) {
+          failures.push({
+            endpoint: diag?.urls?.vttUrl,
+            method: 'GET (primary), HEAD (aux)',
+            head: diag?.results?.headVtt,
+            get: diag?.results?.getVtt,
+            expected: { status: 200, contentTypePrefix: 'text/vtt' },
+          });
+        }
+        setReport({ failures });
+
         // Only probe playback if endpoints look reachable to avoid long timeouts
         if (diag?.assertions?.videoOk && diag?.urls?.videoUrl) {
           const probe = await probeVideoPlayback(diag.urls.videoUrl, 6000);
@@ -24,6 +47,7 @@ export default function DiagnosticsPanel() {
         }
       } catch (e) {
         setMediaDiag({ error: String(e) });
+        setReport({ failures: [{ endpoint: 'diagnostics', error: String(e) }] });
       }
     })();
   }, []);
@@ -57,10 +81,10 @@ export default function DiagnosticsPanel() {
             {!mediaDiag && <div>Checking media endpoints…</div>}
             {mediaDiag && !mediaDiag.error && (
               <>
-                <div>HEAD video: <span style={pill(mediaDiag.results.headVideo.ok && mediaDiag.results.headVideo.status === 200)}>{mediaDiag.results.headVideo.status}</span> <code>{mediaDiag.results.headVideo.contentType || '(no content-type)'}</code></div>
-                <div>GET video: <span style={pill(mediaDiag.results.getVideo.ok)}>{mediaDiag.results.getVideo.status}</span> <code>{mediaDiag.results.getVideo.contentType || '(no content-type)'}</code></div>
-                <div>HEAD captions: <span style={pill(mediaDiag.results.headVtt.ok)}>{mediaDiag.results.headVtt.status}</span> <code>{mediaDiag.results.headVtt.contentType || '(no content-type)'}</code></div>
-                <div>GET captions: <span style={pill(mediaDiag.results.getVtt.ok)}>{mediaDiag.results.getVtt.status}</span> <code>{mediaDiag.results.getVtt.contentType || '(no content-type)'}</code></div>
+                <div>HEAD video <code>{mediaDiag.urls.videoUrl}</code>: <span style={pill(mediaDiag.results.headVideo.ok && mediaDiag.results.headVideo.status === 200)}>{mediaDiag.results.headVideo.status}</span> <code>{mediaDiag.results.headVideo.contentType || '(no content-type)'}</code></div>
+                <div>GET video <code>{mediaDiag.urls.videoUrl}</code>: <span style={pill(mediaDiag.results.getVideo.ok)}>{mediaDiag.results.getVideo.status}</span> <code>{mediaDiag.results.getVideo.contentType || '(no content-type)'}</code></div>
+                <div>HEAD captions <code>{mediaDiag.urls.vttUrl}</code>: <span style={pill(mediaDiag.results.headVtt.ok)}>{mediaDiag.results.headVtt.status}</span> <code>{mediaDiag.results.headVtt.contentType || '(no content-type)'}</code></div>
+                <div>GET captions <code>{mediaDiag.urls.vttUrl}</code>: <span style={pill(mediaDiag.results.getVtt.ok)}>{mediaDiag.results.getVtt.status}</span> <code>{mediaDiag.results.getVtt.contentType || '(no content-type)'}</code></div>
                 <div style={{ marginTop: 4 }}>
                   Assertions: videoOk=<strong>{String(mediaDiag.assertions.videoOk)}</strong>, vttOk=<strong>{String(mediaDiag.assertions.vttOk)}</strong>
                 </div>
@@ -77,6 +101,27 @@ export default function DiagnosticsPanel() {
                 </span>
               ) : 'pending…'}
             </div>
+            {report && report.failures && report.failures.length > 0 && (
+              <div style={{ marginTop: 8, color: '#FCA5A5' }}>
+                <div style={{ color: '#fff', marginBottom: 4 }}>Failure details (copy/paste):</div>
+                {report.failures.map((f, i) => (
+                  <div key={i} style={{ marginBottom: 6 }}>
+                    <div>Endpoint: <code>{f.endpoint}</code></div>
+                    {f.method && <div>Method(s): <code>{f.method}</code></div>}
+                    {f.expected && (
+                      <div>Expected: status {f.expected.status}, content-type prefix {f.expected.contentTypePrefix}</div>
+                    )}
+                    {f.head && (
+                      <div>HEAD -> status {f.head.status}, content-type <code>{f.head.contentType || '(none)'}</code>, ok={String(f.head.ok)}{f.head.error ? `, error=${f.head.error}` : ''}</div>
+                    )}
+                    {f.get && (
+                      <div>GET -> status {f.get.status}, content-type <code>{f.get.contentType || '(none)'}</code>, ok={String(f.get.ok)}{f.get.error ? `, error=${f.get.error}` : ''}</div>
+                    )}
+                    {f.error && <div>Error: <code>{f.error}</code></div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ marginTop: 8, fontSize: 12, color: '#D1D5DB' }}>
