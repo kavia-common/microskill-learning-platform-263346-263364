@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../lms.css';
-import { getAudioUrlForLesson, getCaptionsUrlForLesson, inferFallbackCaptionLines } from '../utils/audioMapping';
-import { enforceSinglePlayback } from '../utils/audioManager';
+import { inferFallbackCaptionLines } from '../utils/audioMapping';
+import { enforceSinglePlayback, globalAudioManager } from '../utils/audioManager';
 import { loadSettings } from '../utils/settings';
 import CaptionOverlay from './CaptionOverlay';
 import { addGlobalToast } from '../ui/ToastHost';
@@ -26,11 +26,10 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
   const [currentCaption, setCurrentCaption] = useState('');
   const [audioAvailable, setAudioAvailable] = useState(false);
   const [captionsAvailable, setCaptionsAvailable] = useState(false);
+  const [resolving, setResolving] = useState(true);
+  const [resolved, setResolved] = useState({ audioUrl: null, captionsUrl: null, textUrl: null, ssmlUrl: null, slug: '' });
 
   const watchThreshold = Math.min(lesson.durationSeconds || 45, 20); // seconds to consider watched
-
-  const audioUrl = getAudioUrlForLesson(lesson);
-  const captionsUrl = getCaptionsUrlForLesson(lesson);
 
   useEffect(() => {
     // refresh settings each mount in case user changed it
@@ -39,46 +38,63 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
 
   useEffect(() => {
     let cancelled = false;
-
-    async function loadCaptions() {
+    async function resolveAndLoad() {
+      setResolving(true);
       try {
-        if (captionsUrl) {
-          const res = await fetch(captionsUrl, { cache: 'no-store' });
-          if (res.ok) {
-            const data = await res.json();
-            if (!cancelled) {
-              // normalize expected shape: [{start,end,text}]
+        const r = await globalAudioManager.resolveForLesson(lesson);
+        if (cancelled) return;
+        setResolved(r);
+        setAudioAvailable(Boolean(r.audioUrl));
+        // Load captions JSON if discovered; else derive from text or summary
+        if (r.captionsUrl) {
+          try {
+            const res = await fetch(r.captionsUrl, { cache: 'no-store' });
+            if (res.ok) {
+              const data = await res.json();
               const cues = Array.isArray(data) ? data : (data?.cues || []);
               setCaptions(cues);
               setCaptionsAvailable(cues.length > 0);
-              return;
+            } else {
+              throw new Error('not ok');
             }
+          } catch {
+            const lines = inferFallbackCaptionLines(lesson);
+            setCaptions(lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t })));
+            setCaptionsAvailable(lines.length > 0);
           }
+        } else if (r.textUrl) {
+          try {
+            const res = await fetch(r.textUrl, { cache: 'no-store' });
+            if (res.ok) {
+              const txt = await res.text();
+              const lines = txt.split(/\r?\n/).map(s => s.trim()).filter(Boolean).slice(0, 30);
+              const cues = lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t }));
+              setCaptions(cues);
+              setCaptionsAvailable(cues.length > 0);
+            } else {
+              throw new Error('not ok');
+            }
+          } catch {
+            const lines = inferFallbackCaptionLines(lesson);
+            setCaptions(lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t })));
+            setCaptionsAvailable(lines.length > 0);
+          }
+        } else {
+          const lines = inferFallbackCaptionLines(lesson);
+          setCaptions(lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t })));
+          setCaptionsAvailable(lines.length > 0);
         }
-      } catch {
-        /* ignore; fallback below */
+      } finally {
+        if (!cancelled) setResolving(false);
       }
-      const lines = inferFallbackCaptionLines(lesson);
-      setCaptions(
-        lines.map((t, i) => ({
-          start: i * 3,
-          end: i * 3 + 2.8,
-          text: t,
-        }))
-      );
-      setCaptionsAvailable(lines.length > 0);
     }
-
-    loadCaptions();
-    return () => {
-      cancelled = true;
-    };
-  }, [captionsUrl, lesson]);
+    resolveAndLoad();
+    return () => { cancelled = true; };
+  }, [lesson]);
 
   useEffect(() => {
-    // Update audio availability
-    setAudioAvailable(Boolean(audioUrl));
-  }, [audioUrl]);
+    setAudioAvailable(Boolean(resolved.audioUrl));
+  }, [resolved]);
 
   // Viewport active => play/pause
   useEffect(() => {
@@ -92,7 +108,7 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
         setBuffering(true);
         enforceSinglePlayback(a, true);
         a.muted = settings.mutedByDefault;
-        a.play().catch((e) => {
+        a.play().catch(() => {
           // Likely blocked by browser policy or missing file
           setError('Audio playback failed');
           addGlobalToast({ type: 'error', message: 'Audio playback failed' });
@@ -174,11 +190,12 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
         preload="metadata"
         aria-label="Background lesson video"
       />
-      {/* Audio voiceover - hidden controls; show mute button separately */}
-      {audioUrl && settings.audioOn && (
+      {/* Audio voiceover - hidden controls; show mute button separately.
+          Only render when resolved and available. */}
+      {resolved.audioUrl && settings.audioOn && (
         <audio
           ref={audioRef}
-          src={audioUrl}
+          src={resolved.audioUrl}
           preload="metadata"
           aria-hidden="true"
         />
@@ -188,12 +205,12 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
         <div className="summary">{lesson.summary}</div>
         <div className="buttons" style={{ alignItems: 'center' }}>
           <button className="btn primary" onClick={() => onQuiz?.(lesson)} aria-label={quizCta}>{quizCta}</button>
-          {audioUrl && settings.audioOn && (
+          {resolved.audioUrl && settings.audioOn && (
             <button className="btn" onClick={toggleMute} aria-label="Toggle mute/unmute" title="Mute/Unmute">
               {audioRef.current?.muted ?? settings.mutedByDefault ? 'Unmute' : 'Mute'}
             </button>
           )}
-          {buffering && <span style={{ color: 'var(--muted)', fontSize: 12 }}>Buffering…</span>}
+          {(resolving || buffering) && <span style={{ color: 'var(--muted)', fontSize: 12 }}>Loading audio…</span>}
           {error && <span style={{ color: '#EF4444', fontSize: 12 }}>Audio error</span>}
         </div>
       </div>

@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import CaptionOverlay from './CaptionOverlay';
-import { getAudioUrlForLesson, getCaptionsUrlForLesson, inferFallbackCaptionLines } from '../utils/audioMapping';
+import { inferFallbackCaptionLines } from '../utils/audioMapping';
 import { loadSettings } from '../utils/settings';
 import { addGlobalToast } from '../ui/ToastHost';
+import { globalAudioManager } from '../utils/audioManager';
 
 /**
  * PUBLIC_INTERFACE
@@ -15,9 +16,8 @@ export default function LessonPlayer({ src, poster, lesson }) {
   const [captions, setCaptions] = useState(null);
   const [currentCaption, setCurrentCaption] = useState('');
   const [audioAvailable, setAudioAvailable] = useState(false);
-
-  const audioUrl = lesson ? getAudioUrlForLesson(lesson) : null;
-  const captionsUrl = lesson ? getCaptionsUrlForLesson(lesson) : null;
+  const [resolved, setResolved] = useState({ audioUrl: null, captionsUrl: null, textUrl: null, ssmlUrl: null, slug: '' });
+  const [resolving, setResolving] = useState(true);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -25,35 +25,51 @@ export default function LessonPlayer({ src, poster, lesson }) {
   }, [src]);
 
   useEffect(() => {
-    setAudioAvailable(Boolean(audioUrl));
-  }, [audioUrl]);
+    setAudioAvailable(Boolean(resolved.audioUrl));
+  }, [resolved]);
 
   useEffect(() => {
     let cancelled = false;
-    async function loadCaptions() {
+    async function resolveAndLoad() {
+      setResolving(true);
       try {
-        if (captionsUrl) {
-          const res = await fetch(captionsUrl, { cache: 'no-store' });
-          if (res.ok) {
-            const data = await res.json();
-            if (!cancelled) {
+        if (!lesson) return;
+        const r = await globalAudioManager.resolveForLesson(lesson);
+        if (cancelled) return;
+        setResolved(r);
+        // captions resolution similar to LessonCard
+        if (r.captionsUrl) {
+          try {
+            const res = await fetch(r.captionsUrl, { cache: 'no-store' });
+            if (res.ok) {
+              const data = await res.json();
               const cues = Array.isArray(data) ? data : (data?.cues || []);
               setCaptions(cues);
               return;
             }
-          }
+          } catch { /* fallthrough */ }
         }
-      } catch {
-        // ignore
+        if (r.textUrl) {
+          try {
+            const res = await fetch(r.textUrl, { cache: 'no-store' });
+            if (res.ok) {
+              const txt = await res.text();
+              const lines = txt.split(/\r?\n/).map(s => s.trim()).filter(Boolean).slice(0, 30);
+              const cues = lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t }));
+              setCaptions(cues);
+              return;
+            }
+          } catch { /* fallthrough */ }
+        }
+        const lines = lesson ? inferFallbackCaptionLines(lesson) : [];
+        setCaptions(lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t })));
+      } finally {
+        if (!cancelled) setResolving(false);
       }
-      const lines = lesson ? inferFallbackCaptionLines(lesson) : [];
-      setCaptions(
-        lines.map((t, i) => ({ start: i * 3, end: i * 3 + 2.8, text: t }))
-      );
     }
-    loadCaptions();
+    resolveAndLoad();
     return () => { cancelled = true; };
-  }, [captionsUrl, lesson]);
+  }, [lesson]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -85,7 +101,7 @@ export default function LessonPlayer({ src, poster, lesson }) {
       {audioAvailable && settings.audioOn && (
         <audio
           ref={audioRef}
-          src={audioUrl}
+          src={resolved.audioUrl}
           preload="metadata"
           onError={onAudioError}
           aria-hidden="true"

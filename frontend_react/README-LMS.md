@@ -27,21 +27,62 @@ This preserves existing API integration—dummy content only activates via the f
 The feed and lesson pages support optional audio voiceovers with captions.
 
 - Place MP3 files in `public/assets/audio/mp3/`
+- Optional SSML in `public/assets/audio/ssml/` and plain text transcripts in `public/assets/audio/text/`
 - Optional captions JSON in `public/assets/audio/captions/`
 
-### File naming convention
+### Automatic title-based mapping
 
-- Audio: `<lesson-id>.mp3` (e.g., `focus-60.mp3`)
-- Captions: `<lesson-id>.captions.json` (array of cues or `{ "cues": [...] }`)
-  - Cue shape: `{ "start": numberSeconds, "end": numberSeconds, "text": "sentence" }`
+Lessons automatically map to audio and captions via a normalized slug of the lesson title.
 
-### Mapping lessons to audio/captions
+Slug rules:
+- lowercase
+- trim leading/trailing spaces
+- collapse internal whitespace
+- remove accents/diacritics
+- remove non-alphanumerics (letters and digits preserved)
+- replace spaces with dashes
+- collapse multiple dashes
 
-Update `src/utils/audioMapping.js`:
-- `ID_TO_FILE` maps lesson IDs to MP3 filenames
-- `ID_TO_CAPTIONS` maps lesson IDs to captions filenames
+Asset probes (first match wins):
+- Audio MP3: `/assets/audio/mp3/{slug}.mp3`
+- SSML: `/assets/audio/ssml/{slug}.ssml`
+- Text transcript: `/assets/audio/text/{slug}.txt`
+- Captions JSON: `/assets/audio/captions/{slug}.captions.json`
 
-If captions JSON is missing, the app will derive short cues from the lesson description/summary as a fallback.
+The resolver will also try:
+- A small registry of common title variants to canonical slugs (see below)
+- `lesson.id` as a candidate slug
+- Known alias slugs: `quick-inbox-zero`, `focus-sprints`, `g-m-a-formula`, `five-minute-map`, `4-4-6-reset`, `memory-ladder`, `micro-leadership-tips`
+- Legacy mappings by id (for backward compatibility)
+
+If no captions JSON is found, the app derives short cues from the lesson summary/description. If no audio exists but a text transcript exists, captions are formed from the text.
+
+### Title variants registry and environment overrides
+
+Default registry (excerpt):
+- "Inbox Zero in Minutes" -> `quick-inbox-zero`
+- "Inbox Zero" -> `quick-inbox-zero`
+- "60-Second Focus Reset" -> `4-4-6-reset`
+- "The Two-Minute Rule" -> `two-minute-rule`
+- "Make a Clear Ask" -> `clear-ask`
+
+You can override or extend mappings via an environment variable:
+
+- `REACT_APP_AUDIO_TITLE_MAP` (JSON string)
+
+Example:
+```
+REACT_APP_AUDIO_TITLE_MAP={"Inbox Zero":"quick-inbox-zero","Focus Sprints":"focus-sprints"}
+```
+
+This is merged on top of the defaults. No secrets are stored in code; configure via `.env`.
+
+### Telemetry
+
+Set `REACT_APP_LOG_LEVEL` to control console logs:
+- `debug` (most verbose): shows candidates and resolution results
+- `info` (default): reports misses
+- `warn`, `error`: reduced logs
 
 ### Settings
 
@@ -52,22 +93,18 @@ Users can toggle:
 
 These controls are available in the Navbar and persist in `localStorage`.
 
-### Progressive enhancement
+### Progressive enhancement and accessibility
 
-- If an audio file is missing, the card/player hides audio controls automatically.
+- If audio is missing, UI hides mute controls but still shows captions if available.
 - If captions are unavailable, the overlay is hidden.
-
-### Accessibility
-
 - Captions are rendered in a `aria-live="polite"` overlay.
 - Keyboard support for toggles and buttons is enabled.
-- Focus-visible styles rely on browser defaults; customize via CSS if needed.
 
 ### Playback behavior
 
 - Only one audio voiceover plays at a time across the feed.
 - Audio autoplays when the card is visible (if Autoplay is on); pauses when out of view.
-- A small buffering indicator shows when audio is loading.
+- A small "Loading audio…" indicator shows during resolution/loading.
 
 ### Errors
 
