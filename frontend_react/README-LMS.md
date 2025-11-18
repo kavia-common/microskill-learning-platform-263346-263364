@@ -21,3 +21,55 @@ Content included:
 - Empty states for feed/profile/saved/continue
 
 This preserves existing API integration—dummy content only activates via the flag or empty API response.
+
+## Audio Voiceovers & Captions
+
+The feed and lesson pages support optional audio voiceovers with captions.
+
+- Place MP3 files in `public/assets/audio/mp3/`
+- Optional captions JSON in `public/assets/audio/captions/`
+
+### File naming convention
+
+- Audio: `<lesson-id>.mp3` (e.g., `focus-60.mp3`)
+- Captions: `<lesson-id>.captions.json` (array of cues or `{ "cues": [...] }`)
+  - Cue shape: `{ "start": numberSeconds, "end": numberSeconds, "text": "sentence" }`
+
+### Mapping lessons to audio/captions
+
+Update `src/utils/audioMapping.js`:
+- `ID_TO_FILE` maps lesson IDs to MP3 filenames
+- `ID_TO_CAPTIONS` maps lesson IDs to captions filenames
+
+If captions JSON is missing, the app will derive short cues from the lesson description/summary as a fallback.
+
+### Settings
+
+Users can toggle:
+- Audio On/Off
+- Captions On/Off
+- Autoplay On/Off
+
+These controls are available in the Navbar and persist in `localStorage`.
+
+### Progressive enhancement
+
+- If an audio file is missing, the card/player hides audio controls automatically.
+- If captions are unavailable, the overlay is hidden.
+
+### Accessibility
+
+- Captions are rendered in a `aria-live="polite"` overlay.
+- Keyboard support for toggles and buttons is enabled.
+- Focus-visible styles rely on browser defaults; customize via CSS if needed.
+
+### Playback behavior
+
+- Only one audio voiceover plays at a time across the feed.
+- Audio autoplays when the card is visible (if Autoplay is on); pauses when out of view.
+- A small buffering indicator shows when audio is loading.
+
+### Errors
+
+- Load/playback errors show a small toast message at the bottom of the screen.
+
