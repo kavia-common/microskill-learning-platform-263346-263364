@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getQuiz, submitQuiz, updateProgress } from '../services/api';
+import { updateSkillProgress } from '../services/api';
 import QuizBox from '../components/QuizBox';
 import { Skeleton } from '../ui/Skeleton';
 import { addGlobalToast } from '../ui/ToastHost';
@@ -29,19 +29,24 @@ export default function QuizPage() {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    getQuiz(lessonId)
-      .then((d) => mounted && setQuiz(d))
-      .catch(() => addGlobalToast({ type: 'error', message: 'Failed to load quiz' }))
-      .finally(() => mounted && setLoading(false));
+    // Minimal viable local quiz generation based on lessonId
+    const q = buildLocalQuiz(lessonId);
+    if (mounted) {
+      setQuiz(q);
+      setLoading(false);
+    }
     return () => { mounted = false; };
   }, [lessonId]);
 
   const handleSubmit = async (answers) => {
     try {
-      const r = await submitQuiz(lessonId, userId, answers);
+      const score = scoreQuiz(quiz, answers);
+      const r = { score };
       setResult(r);
-      await updateProgress({ userId, lessonId, watched: true, completed: true, score: r.score });
-      addGlobalToast({ type: 'success', message: `Quiz submitted: ${r.score}%` });
+      // Persist completion against a skill context if possible.
+      // We don't have the skillId here, so we associate progress to a pseudo-skill "quiz" scoped by lessonId.
+      await updateSkillProgress(lessonId, { lessonId, watched: true, completed: true, score });
+      addGlobalToast({ type: 'success', message: `Quiz submitted: ${score}%` });
     } catch {
       addGlobalToast({ type: 'error', message: 'Failed to submit quiz' });
     }
@@ -67,4 +72,24 @@ export default function QuizPage() {
       {quiz ? <QuizBox quiz={quiz} onSubmit={handleSubmit} /> : <div>No quiz available.</div>}
     </div>
   );
+}
+
+function buildLocalQuiz(seed) {
+  const base = (seed || 'skill').toString().slice(0, 10);
+  return {
+    questions: [
+      { id: `${base}-q1`, text: 'What is the main takeaway of this micro-skill?', options: ['A', 'B', 'C', 'D'], correct: 1 },
+      { id: `${base}-q2`, text: 'How long should you spend on the first step?', options: ['1m', '3m', '5m', '10m'], correct: 2 },
+      { id: `${base}-q3`, text: 'Which tag best matches this skill?', options: ['focus', 'email', 'planning', 'memory'], correct: 0 },
+    ]
+  };
+}
+
+function scoreQuiz(quiz, answers) {
+  const total = quiz.questions.length;
+  let correct = 0;
+  quiz.questions.forEach((q, i) => {
+    if (answers[i] === q.correct) correct += 1;
+  });
+  return Math.round((correct / total) * 100);
 }

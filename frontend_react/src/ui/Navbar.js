@@ -29,15 +29,19 @@ export default function Navbar() {
     setSettings(next);
   };
 
+  const experimentsEnabled = (process.env.REACT_APP_EXPERIMENTS_ENABLED || '').toString().toLowerCase() === 'true';
+
   return (
     <nav className="topnav" role="navigation" aria-label="Main">
       <div className="brand"><Link to="/" style={{ color: 'var(--primary)', textDecoration: 'none' }}>MicroSkills</Link></div>
       <div className="actions" role="group" aria-label="Primary Nav and Settings">
         <Link to="/" className={`navlink ${isActive('/') ? 'active' : ''}`}>Home</Link>
+        <Link to="/skills" className={`navlink ${isActive('/skills') ? 'active' : ''}`}>Skills</Link>
         <Link to="/progress" className={`navlink ${isActive('/progress') ? 'active' : ''}`}>Progress</Link>
         <Link to="/create" className={`navlink ${isActive('/create') ? 'active' : ''}`}>Create</Link>
         <Link to="/create/generate" className={`navlink ${isActive('/create/generate') ? 'active' : ''}`}>Create (AI)</Link>
         <Link to="/profile" className={`navlink ${isActive('/profile') ? 'active' : ''}`}>Profile</Link>
+        {experimentsEnabled && <span className="navlink" style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '4px 8px', color: 'var(--secondary)' }}>Experiments</span>}
         <Link to="/login" className={`btn primary`} aria-label="Login">Login</Link>
         <div style={{ width: 8 }} />
         <button

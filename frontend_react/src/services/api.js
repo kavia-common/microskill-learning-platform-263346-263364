@@ -92,63 +92,47 @@ async function fetchJson(url, options = {}, onErrorToast) {
 }
 
 // PUBLIC_INTERFACE
-export async function getLessons(onErrorToast) {
-  /** Fetch all lessons. */
-  return fetchJson(buildUrl('/api/lessons'), undefined, onErrorToast);
+export async function listSkills({ search = '', level, tag } = {}, onErrorToast) {
+  /** List skills with optional filters. */
+  const qs = new URLSearchParams();
+  if (search) qs.set('search', String(search).slice(0, 120));
+  if (level) qs.set('level', level);
+  if (tag) qs.set('tag', tag);
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return fetchJson(buildUrl(`/api/skills${suffix}`), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function getLesson(id, onErrorToast) {
-  /** Fetch lesson detail by id. */
-  return fetchJson(buildUrl(`/api/lessons/${id}`), undefined, onErrorToast);
+export async function getSkill(id, onErrorToast) {
+  /** Get skill detail by id. */
+  return fetchJson(buildUrl(`/api/skills/${encodeURIComponent(id)}`), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function getQuiz(lessonId, onErrorToast) {
-  /** Fetch quiz for lesson. */
-  return fetchJson(buildUrl(`/api/lessons/${lessonId}/quiz`), undefined, onErrorToast);
+export async function enrollSkill(id, onErrorToast) {
+  /** Enroll current user (mock) to a skill. */
+  return fetchJson(buildUrl(`/api/skills/${encodeURIComponent(id)}/enroll`), { method: 'POST' }, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function submitQuiz(lessonId, userId, answers, onErrorToast) {
-  /** Submit quiz answers and get score. */
-  return fetchJson(
-    buildUrl(`/api/lessons/${lessonId}/quiz`),
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, answers })
-    },
-    onErrorToast
-  );
+export async function getSkillProgress(skillId, onErrorToast) {
+  /** Get progress for a skill. */
+  return fetchJson(buildUrl(`/api/progress/${encodeURIComponent(skillId)}`), undefined, onErrorToast);
 }
 
 // PUBLIC_INTERFACE
-export async function getProgress(userId, onErrorToast) {
-  /** Get user progress. */
-  return fetchJson(buildUrl(`/api/progress?userId=${encodeURIComponent(userId)}`), undefined, onErrorToast);
+export async function updateSkillProgress(skillId, payload, onErrorToast) {
+  /** Update progress for a lesson within a skill. */
+  return fetchJson(buildUrl(`/api/progress/${encodeURIComponent(skillId)}`), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }, onErrorToast);
 }
 
-// PUBLIC_INTERFACE
-export async function updateProgress(payload, onErrorToast) {
-  /** Update user progress record. */
-  return fetchJson(
-    buildUrl('/api/progress'),
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    },
-    onErrorToast
-  );
-}
-
+// Keep existing optional AI endpoints if backend provides them
 // PUBLIC_INTERFACE
 export async function generateLessonAI({ topic, audience, tone, dryRun = false }, onErrorToast) {
-  /**
-   * Calls backend /api/generate-lesson to create lesson + quiz.
-   * Returns: { lesson, quiz }
-   */
   return fetchJson(
     buildUrl('/api/generate-lesson'),
     {
@@ -162,10 +146,6 @@ export async function generateLessonAI({ topic, audience, tone, dryRun = false }
 
 // PUBLIC_INTERFACE
 export async function generateMediaAI({ title, summary, takeaways }, onErrorToast) {
-  /**
-   * Calls backend /api/generate-media to render local MP4 + VTT.
-   * Returns: { slug, videoUrl, captionsUrl }
-   */
   return fetchJson(
     buildUrl('/api/generate-media'),
     {

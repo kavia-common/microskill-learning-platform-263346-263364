@@ -11,6 +11,9 @@ import ForgotPasswordPage from '../views/auth/ForgotPasswordPage';
 import ProfilePage from '../views/ProfilePage';
 import CreatorUploadPage from '../views/CreatorUploadPage';
 import CreatorGeneratePage from '../views/CreatorGeneratePage';
+import SkillsHomePage from '../views/SkillsHomePage';
+import SkillDetailPage from '../views/SkillDetailPage';
+import LearningModulePage from '../views/LearningModulePage';
 
 /**
  * PUBLIC_INTERFACE
@@ -21,10 +24,16 @@ export default function AppRouter() {
     <BrowserRouter>
       <Layout>
         <Routes>
+          {/* Original feed and LMS routes */}
           <Route path="/" element={<HomeFeedPage />} />
           <Route path="/lesson/:id" element={<LessonDetailPage />} />
           <Route path="/quiz/:lessonId" element={<QuizPage />} />
           <Route path="/progress" element={<ProgressPageView />} />
+          {/* New micro-skill routes */}
+          <Route path="/skills" element={<SkillsHomePage />} />
+          <Route path="/skill/:id" element={<SkillDetailPage />} />
+          <Route path="/learn/:skillId/:lessonId" element={<LearningModulePage />} />
+          {/* Auth and creator */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

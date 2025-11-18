@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getLessons } from '../services/api';
+import { listSkills } from '../services/api';
 import LessonCard from '../components/LessonCard';
 import { Skeleton } from '../ui/Skeleton';
 import TagList from '../components/TagList';
@@ -40,7 +40,20 @@ export default function HomeFeedPage() {
       let fallbackUsed = false;
       if (!useDummy) {
         try {
-          all = await getLessons();
+          // Load skills and map to lesson-like cards for feed/grid display
+          const skills = await listSkills();
+          all = (skills || []).map((s) => ({
+            id: s.id,
+            title: s.title,
+            description: s.brief,
+            summary: s.brief,
+            cta: 'Start Lesson',
+            tags: s.tags || [],
+            durationSeconds: Math.max(60, (s.duration || 1) * 60),
+            // video mapping utilities will attempt to resolve by title/id
+            videoUrl: null,
+            thumbnail: null,
+          }));
         } catch {
           all = [];
         }

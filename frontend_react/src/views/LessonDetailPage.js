@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getLesson, updateProgress, generateMediaAI } from '../services/api';
+import { getSkill, updateSkillProgress, generateMediaAI } from '../services/api';
 import LessonPlayer from '../components/LessonPlayer';
 import SummaryBox from '../components/SummaryBox';
 import TagList from '../components/TagList';
@@ -33,8 +33,23 @@ export default function LessonDetailPage() {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    getLesson(id)
-      .then((d) => mounted && setLesson(d))
+    getSkill(id)
+      .then((d) => {
+        if (!mounted) return;
+        // Convert skill detail to a pseudo "lesson" for existing media player components
+        const synthetic = {
+          id: d.id,
+          title: d.title,
+          summary: d.description || d.brief,
+          description: d.description || d.brief,
+          tags: d.tags || [],
+          takeaways: [],
+          // Let mapping utils resolve video/captions by title
+          videoUrl: null,
+          thumbnail: null,
+        };
+        setLesson(synthetic);
+      })
       .catch(() => addGlobalToast({ type: 'error', message: 'Failed to load lesson' }))
       .finally(() => mounted && setLoading(false));
     return () => { mounted = false; };
@@ -58,7 +73,7 @@ export default function LessonDetailPage() {
   const markWatched = async () => {
     setSaving(true);
     try {
-      await updateProgress({ userId, lessonId: id, watched: true, completed: false });
+      await updateSkillProgress(id, { lessonId: `${id}-overview`, watched: true, completed: false });
       addGlobalToast({ type: 'success', message: 'Marked as watched' });
     } catch {
       addGlobalToast({ type: 'error', message: 'Could not update progress' });
