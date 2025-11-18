@@ -1,27 +1,31 @@
-# Diagnostics Runbook: Media Endpoints and Playback
+# Media Diagnostics Capture (HEAD/GET + Playback Probe)
+
+Use this quick guide to collect the exact results required.
 
 Prereqs:
-- Backend running at http://localhost:3001 with FRONTEND_ORIGIN=http://localhost:3000
-- Frontend running at http://localhost:3000 with REACT_APP_API_BASE=http://localhost:3001
+- Frontend running on http://localhost:3000
+- Backend running on http://localhost:3001 (or your configured REACT_APP_API_BASE)
+- Frontend .env has REACT_APP_API_BASE pointing to backend
 
-In-app checks:
-1) Open the app and view the Diagnostics panel at the top.
-2) Confirm:
-   - Health endpoint OK
-   - Generator reachable (OK or appropriate status)
-   - Assets OK
-3) Media checks (quick-inbox-zero):
-   - HEAD /assets/video/mp4/quick-inbox-zero.mp4
-     - Status: 200
-     - Content-Type: video/mp4
-   - GET /assets/captions/quick-inbox-zero.vtt
-     - Status: 200
-     - Content-Type: text/vtt; charset=utf-8
-   - Playback probe: canplay must be true, and no error
+Steps:
+1) Open the app in your browser.
+2) Ensure the Diagnostics panel is visible at the top (it appears via Layout on most pages).
+3) The panel automatically runs:
+   - HEAD and GET:
+     - {API_BASE}/assets/video/mp4/quick-inbox-zero.mp4
+     - {API_BASE}/assets/captions/quick-inbox-zero.vtt
+   - Playback probe using an off-DOM <video> to detect `canplay` vs `error`/timeout.
+4) Copy the following details from the panel:
+   - HEAD video: status, content-type
+   - GET video: status, content-type
+   - HEAD captions: status, content-type
+   - GET captions: status, content-type
+   - Playback probe line: "canplay" or "fail" and any error message
+5) Confirm expectations:
+   - Video: status 200, content-type starts with "video/mp4"
+   - Captions: status 200, content-type starts with "text/vtt; charset=utf-8" (some servers may send "text/vtt" and charset separately)
+6) If any assertions fail, the panel shows a "Failure details (copy/paste)" section with per-method status, content-type, and error, which you can include in reports.
 
-Report failures with:
-- Endpoint URL
-- HTTP method (HEAD/GET)
-- Status code
-- Content-Type header observed
-- Playback errors (if any), including the error message shown
+Tip:
+- If assets 404, click "Test media generation" (on Creator pages) to create sample media. This writes files under backend public/assets served at /assets.
+- If CORS issues appear, ensure backend FRONTEND_ORIGIN matches the frontend origin exactly.
