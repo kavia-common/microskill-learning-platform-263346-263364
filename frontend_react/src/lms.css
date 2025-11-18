@@ -1,0 +1,149 @@
+/* Bold dark theme for LMS */
+:root {
+  --primary: #F97316;
+  --secondary: #10B981;
+  --bg: #000000;
+  --surface: #1F2937;
+  --text: #FFFFFF;
+  --muted: rgba(255,255,255,0.7);
+  --border: rgba(255,255,255,0.12);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topnav .brand {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+}
+
+.topnav .actions button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+.topnav .actions button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #111;
+  font-weight: 700;
+}
+
+.feed {
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+}
+
+.lesson-card {
+  scroll-snap-align: start;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  background: #000;
+}
+
+.lesson-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lesson-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.3), transparent);
+  padding: 16px;
+  color: var(--text);
+}
+
+.lesson-overlay .title {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.lesson-overlay .summary {
+  color: var(--muted);
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.lesson-overlay .buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.btn.primary { background: var(--primary); color: #111; border-color: var(--primary); font-weight: 700; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal .panel {
+  width: min(560px, 92vw);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+.modal .panel h3 { margin-top: 0; }
+.quiz-option {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.quiz-option.selected { border-color: var(--secondary); background: rgba(16,185,129,0.1); }
+.progress {
+  padding: 16px;
+}
+.progress .bar {
+  height: 10px;
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.progress .bar .fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  width: 0%;
+}
