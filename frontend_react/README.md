@@ -12,9 +12,10 @@ This project provides a minimal React template with a clean, modern UI and minim
 ## Getting Started
 
 Environment
-- Copy .env.example to .env and set REACT_APP_API_BASE to your backend (e.g., http://localhost:3001).
-- Alternatively set REACT_APP_BACKEND_URL. If both are empty, the app uses same-origin.
-- Backend must set FRONTEND_ORIGIN to your frontend origin in backend/.env to pass CORS for browser requests.
+- Copy .env.example to .env and set:
+  - REACT_APP_API_BASE=http://localhost:3001
+  - Optionally REACT_APP_BACKEND_URL=http://localhost:3001
+- Backend must set FRONTEND_ORIGIN=http://localhost:3000 in backend/.env to pass CORS for browser requests.
 
 Media generation
 - The app calls POST {API_BASE}/api/generate-media to create:
@@ -28,6 +29,11 @@ Diagnostics
   - /assets/video/mp4/{slug}.mp4
   - /assets/captions/{slug}.vtt
 - Use the "Test media generation" button to create a sample set for the slug "inbox-zero—micro-lesson" (slugified).
+
+Troubleshooting
+- CORS: Ensure backend FRONTEND_ORIGIN matches your frontend origin exactly (http://localhost:3000).
+- Ports: If you change backend PORT, update REACT_APP_API_BASE to match.
+- Asset 404: Confirm backend serves /assets and re-run media generation.
 
 In the project directory, you can run:
 
