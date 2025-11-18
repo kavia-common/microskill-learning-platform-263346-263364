@@ -14,6 +14,13 @@ This project provides a minimal React template with a clean, modern UI and minim
 Environment
 - Copy .env.example to .env and set REACT_APP_API_BASE to your backend (e.g., http://localhost:3001).
 - Alternatively set REACT_APP_BACKEND_URL. If both are empty, the app uses same-origin.
+- Backend must set FRONTEND_ORIGIN to your frontend origin in backend/.env to pass CORS for browser requests.
+
+Media generation
+- The app calls POST {API_BASE}/api/generate-media to create:
+  - /assets/video/mp4/{slug}.mp4
+  - /assets/captions/{slug}.vtt
+- Diagnostics panel includes a “Test media generation” button and references a screenshot at /assets/diagnostics-latest.png.
 
 Diagnostics
 - The Diagnostics panel (top of pages via Layout) checks health, API endpoints, and asset availability.

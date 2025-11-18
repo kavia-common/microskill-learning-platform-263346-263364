@@ -185,4 +185,12 @@ async function safeJson(res) {
   }
 }
 
+/** PUBLIC_INTERFACE
+ * Returns a diagnostic string explaining the resolved API base and guidance.
+ */
+export function __apiDiagnostics() {
+  const base = inferredBase || '(same-origin)';
+  return `API base: ${base}. Set REACT_APP_API_BASE in frontend .env to override. Ensure backend FRONTEND_ORIGIN allows your frontend origin.`;
+}
+
 export { buildUrl as __buildApiUrl, inferredBase as __apiBase };

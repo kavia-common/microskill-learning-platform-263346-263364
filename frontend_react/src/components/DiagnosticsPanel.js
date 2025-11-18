@@ -91,10 +91,11 @@ export default function DiagnosticsPanel() {
   const color = (s) => s === 'ok' ? '#10B981' : (s === 'unknown' ? '#9CA3AF' : '#EF4444');
 
   const remediation = [
-    '- Ensure backend is running (npm start in backend) and REACT_APP_API_BASE points to it (e.g., http://localhost:3001).',
-    '- If probes fail, check CORS (FRONTEND_ORIGIN in backend .env).',
-    '- /api/generate-media writes to public/assets/video/mp4 and public/assets/captions in backend; these are served at /assets.',
-    '- Playback fallbacks: video -> audio+captions -> captions-only. Toasts will guide you if media is missing.',
+    `- Ensure backend is running (npm start in backend) and REACT_APP_API_BASE points to it (current: ${base || '(same-origin)'}).`,
+    '- If probes fail, check CORS: set FRONTEND_ORIGIN in backend .env to your frontend origin.',
+    '- /api/generate-media writes to backend public/assets/{video/mp4|captions}; served at /assets.',
+    '- Playback fallbacks: video -> audio+captions -> captions-only; toasts will guide if media is missing.',
+    '- See latest screenshot reference at /assets/diagnostics-latest.png'
   ];
 
   return (

@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 
 const ToastCtx = createContext({ addToast: () => {} });
+// PUBLIC_INTERFACE
+// Use addGlobalToast({ type: 'error'|'success'|'info', message: '...' }) anywhere to show actionable toasts.
+// Example:
+// import { addGlobalToast } from '../ui/ToastHost';
+// addGlobalToast({ type: 'error', message: 'Backend unreachable. Check REACT_APP_API_BASE and CORS.' });
 
 let listeners = [];
 
