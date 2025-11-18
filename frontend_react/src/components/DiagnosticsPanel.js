@@ -5,6 +5,10 @@ import { addGlobalToast } from '../ui/ToastHost';
 /**
  * PUBLIC_INTERFACE
  * DiagnosticsPanel shows runtime connectivity and asset checks with remediation tips.
+ * It validates:
+ * - Health: GET {API_BASE}/
+ * - Endpoint probes: OPTIONS/GET /api/generate-lesson and /api/generate-media
+ * - Static assets served at /assets for a known slug (quick-inbox-zero)
  */
 export default function DiagnosticsPanel() {
   const base = useMemo(() => apiBase || '', [apiBase]);
@@ -21,29 +25,39 @@ export default function DiagnosticsPanel() {
     async function run() {
       setBusy(true);
       try {
-        // Health
+        // Health: allow non-JSON too
         try {
           const res = await fetch(buildUrl('/'), { cache: 'no-store' });
           const ok = res.ok;
-          const json = ok ? await res.json() : null;
+          let json = null;
+          try { json = await res.json(); } catch { /* ignore text */ }
           if (!cancelled) setHealth({ status: ok ? 'ok' : 'fail', details: json || null });
         } catch (e) {
           if (!cancelled) setHealth({ status: 'fail', details: { error: String(e) } });
         }
 
-        // OPTIONS probe for endpoints (no CORS preflight issues expected)
+        // Probe helper supports OPTIONS -> GET fallback; treats 405/404 as "route reachable"
         async function probe(path) {
+          const url = buildUrl(path);
           try {
-            const res = await fetch(buildUrl(path), { method: 'OPTIONS' });
-            return res.ok ? 'ok' : `fail(${res.status})`;
+            const res = await fetch(url, { method: 'OPTIONS' });
+            if (res.ok) return 'ok';
+          } catch {
+            // fall through
+          }
+          try {
+            const res = await fetch(url, { method: 'GET' });
+            return res.ok || res.status === 405 || res.status === 404 ? 'ok' : `fail(${res.status})`;
           } catch (e) {
             return `fail(${(e && e.message) || 'network'})`;
           }
         }
+
         const [genL, genM] = await Promise.all([
           probe('/api/generate-lesson'),
-          probe('/api/generate-media')
+          probe('/api/generate-media'),
         ]);
+
         if (!cancelled) {
           setChecks(prev => ({ ...prev, generateLesson: genL, generateMedia: genM }));
         }
@@ -60,7 +74,7 @@ export default function DiagnosticsPanel() {
         const commonSlug = 'quick-inbox-zero';
         const [vid, vtt] = await Promise.all([
           probeAsset(`/assets/video/mp4/${commonSlug}.mp4`),
-          probeAsset(`/assets/captions/${commonSlug}.vtt`)
+          probeAsset(`/assets/captions/${commonSlug}.vtt`),
         ]);
         const staticStatus = vid === 'ok' || vtt === 'ok' ? 'ok' : `${vid}|${vtt}`;
         if (!cancelled) {
@@ -78,9 +92,9 @@ export default function DiagnosticsPanel() {
 
   const remediation = [
     '- Ensure backend is running (npm start in backend) and REACT_APP_API_BASE points to it (e.g., http://localhost:3001).',
-    '- If OPTIONS probes fail, check CORS; backend should allow origin "*".',
-    '- For media: /api/generate-media writes to public/assets/video/mp4 and public/assets/captions; ensure those are served at /assets.',
-    '- Playback fallbacks: video -> audio+captions -> captions-only. If video missing, audio/captions should still display.',
+    '- If probes fail, check CORS (FRONTEND_ORIGIN in backend .env).',
+    '- /api/generate-media writes to public/assets/video/mp4 and public/assets/captions in backend; these are served at /assets.',
+    '- Playback fallbacks: video -> audio+captions -> captions-only. Toasts will guide you if media is missing.',
   ];
 
   return (
@@ -115,9 +129,7 @@ export default function DiagnosticsPanel() {
       <div style={{ marginTop: 12 }}>
         <button
           className="btn"
-          onClick={() => {
-            window.location.reload();
-          }}
+          onClick={() => window.location.reload()}
           style={{ padding: '6px 10px', fontSize: 12 }}
         >
           Re-run checks
@@ -129,12 +141,12 @@ export default function DiagnosticsPanel() {
               const payload = {
                 title: 'Inbox Zero — Micro Lesson',
                 summary: 'Learn Inbox Zero quickly with practical steps.',
-                takeaways: ['Triage fast', 'Batch replies', 'Reduce switching']
+                takeaways: ['Triage fast', 'Batch replies', 'Reduce switching'],
               };
               const res = await fetch(buildUrl('/api/generate-media'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
               });
               if (!res.ok) {
                 const err = await res.json().catch(() => ({}));

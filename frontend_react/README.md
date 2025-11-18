@@ -11,6 +11,17 @@ This project provides a minimal React template with a clean, modern UI and minim
 
 ## Getting Started
 
+Environment
+- Copy .env.example to .env and set REACT_APP_API_BASE to your backend (e.g., http://localhost:3001).
+- Alternatively set REACT_APP_BACKEND_URL. If both are empty, the app uses same-origin.
+
+Diagnostics
+- The Diagnostics panel (top of pages via Layout) checks health, API endpoints, and asset availability.
+- It expects generated media to be served from the backend at:
+  - /assets/video/mp4/{slug}.mp4
+  - /assets/captions/{slug}.vtt
+- Use the "Test media generation" button to create a sample set for the slug "inbox-zero—micro-lesson" (slugified).
+
 In the project directory, you can run:
 
 ### `npm start`

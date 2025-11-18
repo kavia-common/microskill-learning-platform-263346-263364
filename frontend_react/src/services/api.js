@@ -1,9 +1,13 @@
- /** 
+/** 
   * API client for LMS backend.
-  * Uses REACT_APP_API_BASE or REACT_APP_BACKEND_URL for base URL.
-  * If not provided, attempt a sane dev fallback:
-  *  - If running on localhost: assume backend at http://localhost:3001
-  *  - Else: same-origin (empty prefix)
+  *
+  * Base URL resolution order:
+  *  1) REACT_APP_API_BASE
+  *  2) REACT_APP_BACKEND_URL
+  *  3) If browser hostname is localhost/127.0.0.1: http://localhost:3001
+  *  4) Otherwise: same-origin (empty prefix)
+  *
+  * To avoid CORS issues, set backend FRONTEND_ORIGIN to the frontend origin.
   */
 
 const inferredBase = (() => {
