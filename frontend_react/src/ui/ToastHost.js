@@ -3,8 +3,22 @@ import React, { createContext, useContext, useCallback, useState, useEffect } fr
 const ToastCtx = createContext({ addToast: () => {} });
 
 let listeners = [];
+
+// PUBLIC_INTERFACE
 export function addGlobalToast(toast) {
-  listeners.forEach((l) => l(toast));
+  /** Adds a toast globally; gracefully no-ops if no host is mounted yet. */
+  if (listeners.length === 0) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.debug('[ToastHost] addGlobalToast before mount', toast);
+    }
+    return;
+  }
+  listeners.forEach((l) => {
+    try {
+      l(toast);
+    } catch {}
+  });
 }
 
 /**
