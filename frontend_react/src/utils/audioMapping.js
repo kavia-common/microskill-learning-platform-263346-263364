@@ -12,10 +12,11 @@
 
 const LOG_LEVEL = (process.env.REACT_APP_LOG_LEVEL || 'info').toLowerCase();
 const LOG_LEVEL_ORDER = { debug: 10, info: 20, warn: 30, error: 40 };
+const DIAGNOSTIC = (process.env.REACT_APP_AUDIO_DIAGNOSTIC || '').toString().toLowerCase() === 'true';
 function log(level, msg, meta) {
   const cur = LOG_LEVEL_ORDER[LOG_LEVEL] ?? 20;
   const lvl = LOG_LEVEL_ORDER[level] ?? 20;
-  if (lvl >= cur) {
+  if (lvl >= cur || DIAGNOSTIC) {
     const payload = meta ? [msg, meta] : [msg];
     // eslint-disable-next-line no-console
     (console[level] || console.log)(...payload);
@@ -123,9 +124,21 @@ async function headExists(url) {
 // Probe helper that tries HEAD against a list of candidate urls and returns the first that exists.
 async function probeFirstExists(urls) {
   for (const u of urls) {
-    // Try HEAD first; if HEAD is not supported by static host, a GET with no-store fallback
+    // 1) Try HEAD
     const exists = await headExists(u);
     if (exists) return u;
+    // 2) Try GET with a small range if supported (helps large media)
+    try {
+      const resRange = await fetch(u, {
+        method: 'GET',
+        headers: { Range: 'bytes=0-1024' },
+        cache: 'no-store',
+      });
+      if (resRange.ok || resRange.status === 206) return u;
+    } catch (e) {
+      // ignore and try plain GET
+    }
+    // 3) Final attempt: normal GET
     try {
       const res = await fetch(u, { method: 'GET', cache: 'no-store' });
       if (res.ok) return u;
@@ -201,13 +214,12 @@ export async function mapLessonToAudio(lesson) {
 
   // Build candidate slugs list with priority
   const candidateSlugs = [];
-  if (registrySlug) candidateSlugs.push(registrySlug);
-  if (autoSlug) candidateSlugs.push(autoSlug);
-  if (idSlug && idSlug !== autoSlug) candidateSlugs.push(idSlug);
+  const pushUnique = (s) => { if (s && !candidateSlugs.includes(s)) candidateSlugs.push(s); };
+  pushUnique(registrySlug);
+  pushUnique(autoSlug);
+  pushUnique(idSlug);
   // add known aliases last (unique)
-  KNOWN_ALIAS_SLUGS.forEach(s => {
-    if (!candidateSlugs.includes(s)) candidateSlugs.push(s);
-  });
+  KNOWN_ALIAS_SLUGS.forEach((s) => pushUnique(s));
 
   // Build candidate URLs
   const mp3Candidates = [

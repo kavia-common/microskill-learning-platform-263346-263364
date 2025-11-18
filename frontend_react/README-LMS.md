@@ -110,3 +110,64 @@ These controls are available in the Navbar and persist in `localStorage`.
 
 - Load/playback errors show a small toast message at the bottom of the screen.
 
+## Troubleshooting Audio Voiceovers
+
+If you see "Audio playback failed" or no sound:
+
+1) Verify asset paths
+- Place files under public/assets/audio/ with these exact paths:
+  - MP3: public/assets/audio/mp3/{slug}.mp3
+  - Captions JSON: public/assets/audio/captions/{slug}.captions.json
+  - SSML: public/assets/audio/ssml/{slug}.ssml
+  - Transcript: public/assets/audio/text/{slug}.txt
+- At runtime, assets are requested from:
+  - /assets/audio/mp3/{slug}.mp3, etc.
+
+2) Slug mapping rules
+- Slug is derived from the lesson title:
+  - lowercase
+  - trim
+  - collapse internal whitespace
+  - remove accents/diacritics
+  - remove non-alphanumerics (letters/digits kept)
+  - replace spaces with dashes, collapse dashes
+- Resolver will also try:
+  - Title variants registry (defaults)
+  - lesson.id as candidate
+  - Known aliases (e.g., quick-inbox-zero)
+- You can override via:
+  - REACT_APP_AUDIO_TITLE_MAP='{"Inbox Zero":"quick-inbox-zero"}'
+
+3) Dev server probing
+- Some dev servers don’t allow HEAD requests. The resolver now falls back to:
+  - GET with Range: bytes=0-1024
+  - Then plain GET
+- This makes asset existence checks work reliably in development.
+
+4) Browser autoplay policies
+- Audio autoplays muted by default.
+- Click the Unmute button to enable sound (a user gesture).
+- If autoplay is blocked, a toast will say: "Autoplay blocked. Tap Unmute to start audio."
+
+5) Single-audio enforcement
+- Only one lesson audio plays at a time via the global audio manager.
+
+6) Captions
+- If captions JSON is missing, the app derives short cues from description/summary.
+- The overlay is non-blocking (pointer-events: none).
+
+7) Logging & diagnostics
+- Set REACT_APP_LOG_LEVEL=debug for detailed logs.
+- Optionally enable REACT_APP_AUDIO_DIAGNOSTIC=true for extra diagnostics.
+
+8) Common pitfalls
+- Wrong filenames or wrong directories under public/.
+- Typos in slugs; verify the expected slug in the browser console when log level is debug.
+- Browser-level autoplay restrictions (use Unmute).
+
+Expected behavior after setup:
+- Active card auto-plays video muted and attempts audio muted.
+- User can unmute via the toggle.
+- No concurrent audio playback across cards.
+- Captions display when available or derived.
+

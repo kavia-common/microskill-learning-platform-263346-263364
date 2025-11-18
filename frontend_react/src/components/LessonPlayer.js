@@ -21,12 +21,36 @@ export default function LessonPlayer({ src, poster, lesson }) {
 
   useEffect(() => {
     const v = videoRef.current;
-    if (v) v.play().catch(() => {});
+    if (v) {
+      v.muted = true;
+      v.play().catch(() => {});
+    }
   }, [src]);
 
   useEffect(() => {
     setAudioAvailable(Boolean(resolved.audioUrl));
   }, [resolved]);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    const onLoadedMetadata = () => {};
+    const onPlaying = () => {};
+    const onWaiting = () => {};
+    const onError = () => onAudioError();
+    globalAudioManager.register(a, false);
+    a.addEventListener('loadedmetadata', onLoadedMetadata);
+    a.addEventListener('playing', onPlaying);
+    a.addEventListener('waiting', onWaiting);
+    a.addEventListener('error', onError);
+    return () => {
+      a.removeEventListener('loadedmetadata', onLoadedMetadata);
+      a.removeEventListener('playing', onPlaying);
+      a.removeEventListener('waiting', onWaiting);
+      a.removeEventListener('error', onError);
+      globalAudioManager.unregister(a);
+    };
+  }, [resolved.audioUrl]);
 
   useEffect(() => {
     let cancelled = false;

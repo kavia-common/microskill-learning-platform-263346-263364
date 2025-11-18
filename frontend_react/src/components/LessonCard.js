@@ -103,16 +103,35 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
     if (!v) return;
 
     if (active) {
+      // Video can autoplay muted safely
+      v.muted = true;
       v.play().catch(() => {});
       if (a && settings.audioOn && settings.autoplayOn && audioAvailable) {
         setBuffering(true);
-        enforceSinglePlayback(a, true);
-        a.muted = settings.mutedByDefault;
-        a.play().catch(() => {
-          // Likely blocked by browser policy or missing file
+        try {
+          // Register to enforce single audio playback
+          enforceSinglePlayback(a, true);
+          // Ensure muted by default to satisfy autoplay policy; user can unmute
+          a.muted = settings.mutedByDefault !== false;
+          const p = a.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => {
+              setError(null);
+            }).catch((e) => {
+              // Likely blocked by autoplay policy or missing file
+              const isPolicy = String(e || '').toLowerCase().includes('user interaction') || String(e || '').toLowerCase().includes('autoplay');
+              const msg = isPolicy ? 'Autoplay blocked. Tap Unmute to start audio.' : 'Audio playback failed';
+              setError(msg);
+              addGlobalToast({ type: 'error', message: msg });
+            }).finally(() => setBuffering(false));
+          } else {
+            setBuffering(false);
+          }
+        } catch (e) {
+          setBuffering(false);
           setError('Audio playback failed');
           addGlobalToast({ type: 'error', message: 'Audio playback failed' });
-        }).finally(() => setBuffering(false));
+        }
       }
     } else {
       v.pause();
@@ -148,28 +167,40 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
     return () => src.removeEventListener('timeupdate', tick);
   }, [lesson?.id, watchThreshold, onWatched, captions, settings.captionsOn]);
 
-  // Audio event handlers
+  // Audio event handlers and registration with audio manager
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
+    const onLoadedMetadata = () => setBuffering(false);
+    const onCanPlay = () => setBuffering(false);
     const onWaiting = () => setBuffering(true);
     const onPlaying = () => setBuffering(false);
+    const onPause = () => setBuffering(false);
     const onError = () => {
       setError('Audio failed to load');
       setBuffering(false);
       addGlobalToast({ type: 'error', message: 'Audio failed to load' });
     };
+    a.addEventListener('loadedmetadata', onLoadedMetadata);
+    a.addEventListener('canplay', onCanPlay);
     a.addEventListener('waiting', onWaiting);
     a.addEventListener('playing', onPlaying);
+    a.addEventListener('pause', onPause);
     a.addEventListener('stalled', onWaiting);
     a.addEventListener('error', onError);
+    // Register with global manager (not forcing play here)
+    globalAudioManager.register(a, false);
     return () => {
+      a.removeEventListener('loadedmetadata', onLoadedMetadata);
+      a.removeEventListener('canplay', onCanPlay);
       a.removeEventListener('waiting', onWaiting);
       a.removeEventListener('playing', onPlaying);
+      a.removeEventListener('pause', onPause);
       a.removeEventListener('stalled', onWaiting);
       a.removeEventListener('error', onError);
+      globalAudioManager.unregister(a);
     };
-  }, []);
+  }, [resolved.audioUrl]);
 
   const quizCta = lesson?.cta === 'Start Lesson' ? 'Start Lesson' : 'Take Quiz';
 
@@ -178,6 +209,12 @@ export default function LessonCard({ lesson, active, onQuiz, onWatched }) {
     if (!a) return;
     a.muted = !a.muted;
     setSettings((s) => ({ ...s, mutedByDefault: a.muted }));
+    // If user unmutes, that is a gesture: try to play again if paused due to policy
+    if (!a.muted && a.paused) {
+      a.play().catch(() => {
+        addGlobalToast({ type: 'error', message: 'Unable to start audio. Check browser autoplay settings.' });
+      });
+    }
   };
 
   return (

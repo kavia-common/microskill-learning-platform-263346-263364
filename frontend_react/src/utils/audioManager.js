@@ -9,10 +9,11 @@
 
  const LOG_LEVEL = (process.env.REACT_APP_LOG_LEVEL || 'info').toLowerCase();
  const LOG_LEVEL_ORDER = { debug: 10, info: 20, warn: 30, error: 40 };
+ const DIAGNOSTIC = (process.env.REACT_APP_AUDIO_DIAGNOSTIC || '').toString().toLowerCase() === 'true';
  function log(level, msg, meta) {
    const cur = LOG_LEVEL_ORDER[LOG_LEVEL] ?? 20;
    const lvl = LOG_LEVEL_ORDER[level] ?? 20;
-   if (lvl >= cur) {
+   if (lvl >= cur || DIAGNOSTIC) {
      const payload = meta ? [msg, meta] : [msg];
      // eslint-disable-next-line no-console
      (console[level] || console.log)(...payload);
@@ -37,7 +38,10 @@
      audioEl.addEventListener('ended', this._onEnd);
      if (playNow) {
        this.pauseAllExcept(audioEl);
-       audioEl.play().catch(() => {});
+       const p = audioEl.play();
+       if (p && typeof p.then === 'function') {
+         p.catch(() => {});
+       }
        this.current = audioEl;
      }
    }
